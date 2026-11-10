@@ -1,0 +1,27 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="18" y1="14" x2="112" y2="118" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#12223B"/>
+      <stop offset="0.52" stop-color="#0C192D"/>
+      <stop offset="1" stop-color="#07101E"/>
+    </linearGradient>
+    <linearGradient id="zMain" x1="20" y1="18" x2="108" y2="106" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#67E8F9"/>
+      <stop offset="0.3" stop-color="#38BDF8"/>
+      <stop offset="0.7" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <linearGradient id="zShimmer" x1="58" y1="36" x2="82" y2="90" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#93C5FD"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#bg)" stroke="#93C5FD" stroke-opacity="0.6"/>
+
+  <path d="M28 31H100V45L59 82H100V96H28V82L69 45H28V31Z" fill="url(#zMain)" stroke="#93C5FD" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M29 32H99L86 46H42L29 32Z" fill="white" fill-opacity="0.52"/>
+  <path d="M64 45L59 82H67L72 45H64Z" fill="url(#zShimmer)" fill-opacity="0.85"/>
+  <circle cx="64" cy="63" r="5.2" fill="#38BDF8"/>
+  <circle cx="64" cy="63" r="2" fill="white"/>
+</svg>

@@ -1,0 +1,1174 @@
+# MASTER DEVELOPMENT INSTRUCTION — NEXORA
+
+## 1. YOUR ROLE
+
+Act as a senior product architect, UI/UX designer, brand strategist, and full-stack software engineer.
+
+Your task is to design and develop a professional digital agency website and the foundation of its business platform for a company called **Nexora**.
+
+Do not create only a landing-page mockup. Build a polished, responsive, scalable application with real navigation, reusable components, working interactions, appropriate backend architecture, and a foundation that can grow into a SaaS platform.
+
+Work professionally. Make reasonable technical decisions independently. Do not stop after generating a homepage.
+
+First inspect the existing project, understand its current structure and technologies, and preserve useful existing code. Do not unnecessarily delete or replace working functionality.
+
+If the project is empty, initialize the architecture described below.
+
+---
+
+# 2. COMPANY IDENTITY
+
+**Company name:** Nexora
+
+**Business type:** Full-service digital agency and AI automation company.
+
+**Initial target market:** Uzbekistan.
+
+**Future target market:** International businesses.
+
+**Primary languages:**
+- Uzbek (Latin script)
+- Russian
+- English (optional, designed to be added easily)
+
+**Company positioning:**
+
+Nexora helps businesses grow through modern websites, digital products, artificial intelligence, business automation, professional content, and digital marketing.
+
+We are not simply a web development company. We provide complete digital solutions that help businesses improve their online presence, attract customers, automate repetitive work, and increase operational efficiency.
+
+**Core message:**
+
+"Build Smarter. Grow Faster."
+
+Alternative headline:
+
+"Your Business Deserves a Smarter Digital Future."
+
+The brand should communicate:
+- Innovation
+- Intelligence
+- Reliability
+- Professionalism
+- Modern technology
+- Business growth
+- Premium quality
+
+Do not make the company look like a generic IT outsourcing agency.
+
+---
+
+# 3. BRAND AND VISUAL DESIGN
+
+Create a premium, modern, technology-focused visual identity for Nexora.
+
+## Design direction
+
+Use a clean, sophisticated, futuristic-but-professional visual style.
+
+The design should feel like a combination of a premium technology company, an AI startup, and a professional digital agency.
+
+Suggested visual direction:
+- Dark navy or near-black backgrounds for selected sections.
+- White or light backgrounds for content-heavy sections.
+- Electric blue, violet, or cyan as restrained accent colors.
+- Subtle gradients.
+- Modern typography.
+- Beautiful spacing and consistent alignment.
+- Soft shadows and carefully used borders.
+- Smooth animations and transitions.
+- Subtle background effects.
+- Professional icons and illustrations.
+- High-quality visual composition.
+
+Avoid:
+- Generic template-looking websites.
+- Excessive gradients.
+- Too many glowing elements.
+- Overloaded layouts.
+- Unnecessary animations.
+- Random stock photography.
+- Cartoonish illustrations.
+- Excessive rounded cards.
+- Unprofessional typography.
+
+Use a consistent design system with reusable colors, typography, spacing, buttons, cards, and layouts.
+
+The website must look excellent on:
+- Desktop
+- Laptop
+- Tablet
+- Mobile
+
+Use subtle animations, such as section reveals, hover transitions, and carefully designed motion. Respect reduced-motion accessibility settings.
+
+---
+
+# 4. COMPANY SERVICES
+
+Nexora is a full-service digital agency.
+
+Create dedicated service sections and individual service detail pages where appropriate.
+
+## Service 1 — Website Development
+
+We design and develop modern, high-performance websites for businesses.
+
+Services include:
+- Business websites
+- Corporate websites
+- Landing pages
+- Custom web applications
+- Website redesign
+- Responsive website development
+- Website maintenance
+- Performance optimization
+- SEO-friendly website architecture
+
+The design should communicate that we build websites that look professional, load quickly, and help businesses convert visitors into customers.
+
+## Service 2 — E-commerce Development
+
+We create online stores that help businesses sell products and manage orders.
+
+Services include:
+- Online store development
+- Product catalog systems
+- Shopping carts
+- Checkout experiences
+- Order management
+- Product management
+- Payment integration
+- Delivery integration
+- Admin dashboards
+- E-commerce optimization
+
+Present this service as a complete online selling solution.
+
+## Service 3 — AI Agents and Business Automation
+
+This is one of Nexora's most important services and our main strategic differentiator.
+
+We develop AI-powered assistants and automation systems that reduce manual work and help businesses respond to customers faster.
+
+Services include:
+- AI customer support agents
+- AI sales assistants
+- Instagram DM automation
+- Telegram AI bots
+- Website AI chatbots
+- Lead qualification
+- Automated customer communication
+- Business workflow automation
+- AI knowledge-base assistants
+- AI-powered internal tools
+- Custom AI integrations
+
+Highlight that AI agents can use verified business information, answer customer questions, retrieve product information, and hand conversations to human employees when necessary.
+
+Do not promise that AI can perform actions that have not actually been implemented.
+
+## Service 4 — Social Media Management
+
+Help businesses build a consistent and professional social media presence.
+
+Services include:
+- Social media strategy
+- Instagram account management
+- Content planning
+- Post creation
+- Reels planning
+- Captions and copywriting
+- Audience engagement
+- Social media optimization
+- Performance reporting
+
+## Service 5 — Professional Photo and Video Content
+
+Create professional visual content for brands and businesses.
+
+Services include:
+- Product photography
+- Commercial photography
+- Promotional videos
+- Short-form video content
+- Instagram Reels
+- Advertising creatives
+- AI-assisted visual content
+- Video editing
+- Creative campaign production
+
+## Service 6 — Branding and Graphic Design
+
+Help businesses create a recognizable and consistent brand identity.
+
+Services include:
+- Logo design
+- Brand identity
+- Brand guidelines
+- Visual identity systems
+- Social media design
+- Marketing materials
+- Advertising banners
+- Presentation design
+- Packaging concepts
+
+## Service 7 — Digital Marketing
+
+Help businesses attract customers and grow their online presence.
+
+Services include:
+- Digital marketing strategy
+- Advertising campaign planning
+- Social media advertising
+- Lead generation
+- Conversion optimization
+- Marketing analytics
+- Campaign performance reporting
+
+Only advertise specific advertising platforms or integrations when the company can actually provide those services.
+
+## Service 8 — Custom Digital Solutions
+
+Build tailored digital systems for businesses with specific operational needs.
+
+Services include:
+- Internal business systems
+- CRM development
+- Custom dashboards
+- API integrations
+- Workflow automation
+- Data management tools
+- Business process digitization
+- Custom software development
+
+---
+
+# 5. FLAGSHIP PRODUCT — NEXORA AI SALES AGENT
+
+Create a dedicated product page for our first SaaS product.
+
+Product name: **Nexora AI Sales Agent**
+
+This product is a multi-business AI platform that automates customer conversations, initially through Instagram Direct Messages.
+
+## Product description
+
+Nexora AI Sales Agent helps businesses automatically answer customer questions, provide product information, collect order requests, and transfer conversations to human employees when necessary.
+
+It is initially designed for businesses in Uzbekistan.
+
+Supported languages:
+- Uzbek
+- Russian
+
+The architecture should allow additional languages in the future.
+
+## Main capabilities
+
+1. Instagram professional account connection.
+2. Automated Instagram DM responses.
+3. Uzbek and Russian language support.
+4. Product catalog integration.
+5. Product price retrieval.
+6. Product availability retrieval.
+7. Customer question answering.
+8. Business knowledge-base integration.
+9. Order request collection.
+10. Customer information collection with consent.
+11. Human employee handover.
+12. Conversation history.
+13. AI response configuration.
+14. Basic analytics.
+15. Multiple employee roles.
+
+## Example customer interactions
+
+Example 1:
+
+Customer: "Assalomu alaykum, bu kurtka qancha turadi?"
+
+AI: Retrieves the product from the business catalog and responds with its verified price.
+
+Example 2:
+
+Customer: "Есть ли этот товар в наличии?"
+
+AI: Checks the product inventory and responds in Russian.
+
+Example 3:
+
+Customer: "Yetkazib berish qancha turadi?"
+
+AI: Retrieves the business delivery information and provides the correct answer.
+
+Example 4:
+
+Customer wants to order a product.
+
+AI: Collects the necessary order information with the customer's consent and creates an order request.
+
+Example 5:
+
+Customer requests a human employee.
+
+AI: Transfers the conversation to an employee.
+
+## Important product rules
+
+- Never invent product prices.
+- Never invent inventory availability.
+- Never invent discounts.
+- Never invent delivery prices or delivery times.
+- Use structured product data for price and inventory questions.
+- Use verified business documents for policies and frequently asked questions.
+- Never claim that an order is confirmed unless the backend confirms it.
+- Provide a human handover option.
+- Follow Meta's official Instagram messaging requirements and permitted messaging windows.
+- Never use unofficial Instagram scraping, browser automation, or unauthorized messaging methods.
+
+Build the product page so potential customers understand its benefits immediately.
+
+Include:
+- Product hero section
+- Feature explanations
+- How it works
+- Example conversation interface
+- Benefits for businesses
+- Frequently asked questions
+- Call-to-action to request a demo
+
+Do not claim that the Instagram integration is live until it has been configured, tested, and approved where necessary.
+
+---
+
+# 6. PUBLIC WEBSITE STRUCTURE
+
+Build the following pages.
+
+## Page 1 — Home
+
+This is the most important page.
+
+Create a high-quality homepage with these sections:
+
+### A. Navigation
+
+Include:
+- Nexora logo
+- Home
+- Services
+- AI Solutions
+- Products
+- About Us
+- Contact
+- Language selector
+- "Get Started" button
+
+The navigation should be responsive and include a mobile menu.
+
+### B. Hero section
+
+Use a strong headline:
+
+"Build Smarter. Grow Faster."
+
+Supporting text:
+
+"From powerful websites to intelligent AI automation, Nexora helps businesses transform their digital presence and unlock new opportunities for growth."
+
+Primary CTA:
+"Let's Work Together"
+
+Secondary CTA:
+"Explore Our Services"
+
+Add a visually impressive technology-inspired hero composition.
+
+It can include an abstract 3D-style visual, connected digital elements, AI-inspired graphics, or a sophisticated dashboard preview.
+
+Do not use generic stock images.
+
+### C. Services overview
+
+Show all major services in an elegant grid.
+
+Each service should have:
+- Icon
+- Name
+- Short description
+- Learn More link
+
+### D. AI solutions spotlight
+
+Give AI automation special visual importance.
+
+Headline:
+
+"Make Your Business Smarter with AI."
+
+Explain how Nexora builds intelligent systems that automate customer communication and repetitive business tasks.
+
+Highlight Nexora AI Sales Agent.
+
+CTA:
+"Explore AI Solutions"
+
+### E. How we work
+
+Show a clear four-step process:
+
+1. Discover — Understand the business and its goals.
+2. Strategize — Design the right digital solution.
+3. Build — Develop and implement the solution.
+4. Grow — Optimize, improve, and scale.
+
+### F. Industries we support
+
+Initially highlight:
+- Fashion and clothing stores
+- Furniture businesses
+- Electronics stores
+- Restaurants and cafes
+- Retail businesses
+- Service-based businesses
+
+Make the content flexible so new industries can be added later.
+
+### G. Why choose Nexora?
+
+Highlight:
+- One partner for multiple digital services.
+- AI-first approach.
+- Tailored business solutions.
+- Modern technology.
+- Professional development.
+- Focus on measurable business outcomes.
+- Long-term support.
+
+### H. Featured product
+
+Showcase Nexora AI Sales Agent.
+
+### I. Call to action
+
+Headline:
+
+"Ready to Transform Your Business?"
+
+Text:
+
+"Let's build something smarter together."
+
+CTA:
+"Start Your Project"
+
+### J. Footer
+
+Include:
+- Nexora logo
+- Short company description
+- Service links
+- Product links
+- Company links
+- Contact information
+- Social media links
+- Copyright information
+- Privacy Policy
+- Terms of Service
+
+Do not invent phone numbers, email addresses, office addresses, or social media URLs. Create configurable placeholders and make them easy to update.
+
+---
+
+## Page 2 — Services
+
+Create a complete services overview page.
+
+Show all eight service categories.
+
+Each service should have:
+- A strong visual
+- Description
+- Key benefits
+- Deliverables
+- CTA to request a consultation
+
+Create individual service detail pages using reusable components.
+
+---
+
+## Page 3 — AI Solutions
+
+Create a dedicated page explaining Nexora's AI and automation services.
+
+Include:
+- AI customer support
+- AI sales assistants
+- Instagram automation
+- Telegram automation
+- Website chatbots
+- Business workflow automation
+- Custom AI agents
+
+Include the Nexora AI Sales Agent as the main featured solution.
+
+---
+
+## Page 4 — Products
+
+Create a product listing page.
+
+Initially include:
+- Nexora AI Sales Agent
+
+Structure the page so additional SaaS products can be introduced later.
+
+Do not invent additional products as if they already exist.
+
+---
+
+## Page 5 — About Us
+
+Explain Nexora's mission, approach, and vision.
+
+Suggested mission:
+
+"To help businesses embrace modern technology, improve their operations, and achieve sustainable growth through intelligent digital solutions."
+
+Suggested vision:
+
+"To become a trusted technology and AI partner for businesses in Uzbekistan and international markets."
+
+Include:
+- Company introduction
+- Mission
+- Vision
+- Core values
+- Our approach
+- Why Nexora exists
+
+Do not invent employee names, company history, awards, certifications, or client partnerships.
+
+---
+
+## Page 6 — Portfolio / Case Studies
+
+Create a professional portfolio page.
+
+It should support:
+- Project title
+- Industry
+- Project description
+- Services delivered
+- Technologies used
+- Images
+- Results, if verified
+
+Important:
+
+Do not invent real clients, testimonials, performance metrics, or successful case studies.
+
+If there are no real projects yet, use clearly labeled demonstration projects.
+
+Make it easy for administrators to add real projects later.
+
+---
+
+## Page 7 — Contact
+
+Create a professional contact page.
+
+Include:
+- Contact form
+- Name
+- Business name
+- Email
+- Phone or Telegram username
+- Service of interest
+- Project description
+- Preferred language
+
+Add appropriate validation and a clear submission-success state.
+
+Do not display fake contact information.
+
+Make the contact details configurable through application settings.
+
+---
+
+## Page 8 — Privacy Policy and Terms
+
+Create initial editable legal-information pages.
+
+Clearly mark them as drafts requiring review by a qualified legal professional before publication.
+
+Do not present generic placeholder text as legally reviewed advice.
+
+---
+
+# 7. NEXORA CLIENT PLATFORM
+
+Besides the public website, build the foundation for a separate authenticated business application.
+
+Suggested application route:
+
+/app
+
+This is where businesses will eventually manage their Nexora products and services.
+
+Create a professional dashboard interface.
+
+## User roles
+
+1. Nexora Super Admin
+2. Business Owner
+3. Business Employee
+
+Use role-based access control.
+
+## Dashboard navigation
+
+- Overview
+- Inbox
+- Instagram Accounts
+- Products
+- Orders
+- Customers
+- AI Assistant
+- Knowledge Base
+- Analytics
+- Team Members
+- Settings
+
+## Dashboard overview
+
+Show:
+- Connected Instagram accounts
+- Total conversations
+- New inquiries
+- AI-handled conversations
+- Human-handled conversations
+- Order requests
+- AI usage
+
+Use realistic but clearly labeled demo data until real data is connected.
+
+## Inbox
+
+Create a modern messaging dashboard with:
+- Conversation list
+- Customer information
+- Message history
+- Message timestamps
+- Conversation status
+- AI/human handling indicator
+- Search
+- Assignment to employees
+- Human takeover
+- Conversation notes
+
+Design it like a professional customer-support platform.
+
+## Products
+
+Allow businesses to:
+- Add products
+- Edit products
+- Delete products
+- Upload product images
+- Set prices
+- Set SKUs
+- Manage variants
+- Manage stock
+- Search products
+
+## AI Assistant
+
+Allow business owners to:
+- Enable or disable AI
+- Configure assistant behavior
+- Select supported languages
+- Configure business information
+- Configure escalation behavior
+- Review AI activity
+
+## Knowledge Base
+
+Allow businesses to add:
+- Frequently asked questions
+- Delivery information
+- Return policies
+- Business hours
+- Product information documents
+- Other business documents
+
+## Team Members
+
+Allow business owners to:
+- Invite employees
+- Assign roles
+- Manage access
+- Assign conversations
+
+## Analytics
+
+Display:
+- Conversation volume
+- AI resolution rate
+- Human handover rate
+- Customer inquiry trends
+- Order requests
+- AI usage
+
+Clearly distinguish demo data from live business metrics.
+
+---
+
+# 8. TECHNICAL ARCHITECTURE
+
+Use a modern, maintainable, scalable architecture.
+
+First inspect the existing project. If a suitable stack already exists, preserve it where practical. Otherwise use the following stack.
+
+## Frontend
+
+- React
+- TypeScript
+- Vite or the existing suitable build system
+- Tailwind CSS
+- shadcn/ui
+- React Router
+- TanStack Query
+- React Hook Form
+- Zod
+
+Use reusable components and a consistent design system.
+
+## Backend
+
+- Node.js
+- NestJS
+- TypeScript
+- REST API
+- WebSockets where realtime functionality is required
+
+## Database
+
+- PostgreSQL
+- Prisma ORM
+
+## Background processing
+
+- Redis
+- BullMQ
+
+Use background workers for:
+- Webhook processing
+- AI requests
+- Document processing
+- Analytics jobs
+- Other asynchronous tasks
+
+## AI
+
+Use the OpenAI API through a dedicated AI service layer.
+
+Implement:
+- Language detection
+- Intent classification
+- Context retrieval
+- Structured tool calling
+- Response validation
+- Conversation context management
+- Human handover
+
+Do not expose API keys to the frontend.
+
+## Vector search
+
+Use PostgreSQL with pgvector when semantic retrieval is required.
+
+Use structured database queries for product prices, stock, and other exact business information.
+
+## Storage
+
+Use S3-compatible object storage for uploaded images and documents.
+
+## Deployment
+
+Prepare the application for Docker-based deployment.
+
+The initial deployment environment may use Render.
+
+Keep the public website, API, and background worker deployable independently.
+
+---
+
+# 9. PROJECT STRUCTURE
+
+If starting from scratch, use a monorepo structure similar to:
+
+nexora/
+  apps/
+    site/
+    web/
+    api/
+    worker/
+  packages/
+    shared/
+    database/
+    ai-engine/
+    instagram/
+    config/
+  infrastructure/
+    docker/
+    deployment/
+  docs/
+  docker-compose.yml
+  README.md
+
+Where:
+
+- site = public Nexora company website
+- web = authenticated Nexora business dashboard
+- api = NestJS backend
+- worker = background processing
+- shared = shared types and validation
+- database = Prisma schema and migrations
+- ai-engine = AI orchestration
+- instagram = official Meta integration
+- config = shared configuration
+
+If the existing repository uses a different structure, adapt it without unnecessary restructuring.
+
+---
+
+# 10. DATABASE FOUNDATION
+
+Design a multi-tenant database from the beginning.
+
+The database should support:
+
+- Users
+- Organizations
+- Organization memberships
+- Roles and permissions
+- Instagram accounts
+- Customers
+- Conversations
+- Messages
+- Products
+- Product variants
+- Orders
+- Order items
+- Knowledge documents
+- Knowledge chunks
+- AI settings
+- AI usage logs
+- Webhook events
+- Audit logs
+- Contact form submissions
+- Portfolio projects
+
+Every tenant-owned record must be securely associated with its organization.
+
+Never allow one business to access another business's records.
+
+Implement:
+- Database migrations
+- Proper relations
+- Indexes
+- Unique constraints
+- Tenant-aware query scoping
+- Secure token storage
+- Appropriate validation
+
+Use PostgreSQL row-level security as an additional safeguard where appropriate.
+
+---
+
+# 11. INSTAGRAM INTEGRATION
+
+Use only Meta's official Instagram APIs.
+
+Prepare the architecture for:
+- Instagram professional account connection
+- OAuth authorization
+- Token management
+- Webhook verification
+- Incoming messages
+- Outgoing messages
+- Conversation management
+
+Important requirements:
+
+- Follow Meta's current API documentation.
+- Use only supported account types and permissions.
+- Implement webhook signature verification.
+- Handle duplicate webhook events safely.
+- Process messages asynchronously.
+- Implement retries and error handling.
+- Enforce Meta's messaging-window restrictions.
+- Do not send unauthorized unsolicited messages.
+- Never expose access tokens to the frontend.
+- Do not claim integration is operational without successful testing.
+
+If Meta credentials or permissions are not available, build a clearly labeled integration setup interface and a safe development/testing mode.
+
+Never fake a successful live Instagram connection.
+
+---
+
+# 12. SECURITY AND QUALITY
+
+Security is essential.
+
+Implement:
+- Secure authentication
+- Password hashing
+- Role-based permissions
+- Organization-level data isolation
+- Server-side input validation
+- Rate limiting
+- Secure environment variables
+- Encrypted third-party access tokens
+- Webhook signature verification
+- Safe file upload validation
+- Audit logging for important actions
+- Appropriate error handling
+- Protection against unauthorized access
+
+For AI:
+- Never allow arbitrary database access.
+- Give the AI only explicitly approved business tools.
+- Validate every AI tool action on the backend.
+- Prevent the AI from inventing business information.
+- Protect against prompt injection.
+- Log important AI actions without exposing secrets.
+
+Do not commit credentials, API keys, passwords, or access tokens.
+
+---
+
+# 13. INTERNATIONALIZATION
+
+Implement a proper translation system.
+
+Initial languages:
+- Uzbek (Latin)
+- Russian
+
+English may be added as a third language.
+
+Requirements:
+- Language selector in the public navigation.
+- Language preference persistence.
+- Translated navigation.
+- Translated service descriptions.
+- Translated product pages.
+- Translated forms.
+- Translated dashboard interface.
+- Proper formatting and typography.
+
+Do not simply translate the homepage while leaving the rest of the application untranslated.
+
+Keep translation content separate from application logic.
+
+---
+
+# 14. SEO AND PERFORMANCE
+
+The public company website must be optimized for search engines.
+
+Implement:
+- Page titles
+- Meta descriptions
+- Canonical URLs
+- Open Graph metadata
+- Sitemap
+- Robots.txt
+- Semantic HTML
+- Descriptive image alt text
+- Structured data where appropriate
+- Clean URL structure
+
+Performance requirements:
+- Optimize images.
+- Lazy-load appropriate media.
+- Avoid unnecessary dependencies.
+- Minimize layout shifts.
+- Optimize font loading.
+- Avoid excessive animations.
+- Keep the website fast on mobile connections.
+
+---
+
+# 15. DEVELOPMENT ROADMAP
+
+Build the project in clear phases.
+
+## Phase 1 — Brand and public website
+
+Complete:
+- Nexora design system
+- Public homepage
+- Navigation
+- Services pages
+- AI solutions page
+- Products page
+- About page
+- Portfolio page
+- Contact page
+- Footer
+- Responsive layouts
+- Uzbek and Russian translations
+- SEO foundation
+
+The public website should be polished and ready for real company content.
+
+## Phase 2 — Application foundation
+
+Complete:
+- Backend setup
+- PostgreSQL
+- Prisma
+- Authentication
+- Organizations
+- Memberships
+- Roles
+- Dashboard layout
+- Tenant isolation
+- Products CRUD
+- Customer management foundation
+
+## Phase 3 — Messaging foundation
+
+Complete:
+- Instagram integration setup
+- OAuth foundation
+- Webhook endpoints
+- Incoming message processing
+- Conversation storage
+- Inbox interface
+- Human handover
+- Background workers
+
+## Phase 4 — AI Sales Agent
+
+Complete:
+- OpenAI integration
+- Uzbek/Russian language handling
+- Product retrieval
+- Knowledge-base retrieval
+- AI response generation
+- Response validation
+- Approved business tools
+- Order request creation
+- Human escalation
+
+## Phase 5 — Business operations
+
+Complete:
+- Analytics
+- Team management
+- Notifications
+- AI usage tracking
+- Audit logs
+- Security improvements
+- Error monitoring
+
+## Phase 6 — Production preparation
+
+Complete:
+- Automated tests
+- Integration tests
+- Security review
+- Performance testing
+- Docker configuration
+- Deployment configuration
+- Backup strategy
+- Monitoring
+- Documentation
+
+---
+
+# 16. DEVELOPMENT RULES
+
+Follow these rules throughout development:
+
+1. Build real functionality, not just static visual demonstrations.
+2. Do not leave important buttons nonfunctional.
+3. Do not invent company information.
+4. Do not invent client testimonials or business results.
+5. Clearly label demo data.
+6. Use reusable components.
+7. Use TypeScript properly.
+8. Avoid unnecessary code duplication.
+9. Keep frontend, backend, and business logic separated.
+10. Validate data on both frontend and backend.
+11. Handle loading, empty, success, and error states.
+12. Build mobile-responsive interfaces.
+13. Use accessible forms and navigation.
+14. Keep environment variables outside source code.
+15. Write meaningful documentation.
+16. Add tests for critical business logic.
+17. Keep the architecture easy to extend.
+18. Do not implement microservices prematurely. Start with a modular monolith and a separate worker.
+19. Do not claim external integrations work until they have been tested with real credentials.
+20. Do not stop after creating the homepage.
+
+---
+
+# 17. WHAT I EXPECT YOU TO DO FIRST
+
+Before writing code:
+
+1. Inspect the complete existing project.
+2. Identify its current framework, dependencies, structure, and existing functionality.
+3. Explain briefly what already exists and what needs to be built.
+4. Propose the implementation plan based on the existing codebase.
+5. Identify any missing credentials or external services that will be required later.
+
+Then begin implementation.
+
+Start with the brand identity, design system, navigation, and public homepage.
+
+After that, build the remaining public website pages.
+
+Continue with the authenticated platform foundation.
+
+Do not wait for me to approve every small design or technical decision. Use professional judgment and keep moving.
+
+However, do not invent external credentials, real company contact information, client information, or business results.
+
+If an external integration requires credentials, build the integration-ready architecture and clearly document what is needed.
+
+---
+
+# 18. FINAL QUALITY EXPECTATION
+
+The final result should look and feel like a serious international technology and AI company.
+
+Nexora should have:
+
+1. A premium public-facing company website.
+2. A complete presentation of its digital services.
+3. A dedicated AI solutions section.
+4. A dedicated Nexora AI Sales Agent product page.
+5. A professional authenticated business dashboard.
+6. A scalable backend foundation.
+7. A multi-tenant database architecture.
+8. A foundation for official Instagram automation.
+9. Uzbek and Russian language support.
+10. A clear path toward becoming a full-service digital agency and SaaS technology company.
+
+The most important thing:
+
+**Build Nexora as a real technology business, not just a beautiful website.**
+
+The website must attract potential clients, explain our services, generate business inquiries, and introduce our AI products.
+
+The application must provide the technical foundation for delivering those products to real businesses.
+
+Make every design and engineering decision consistent with this vision.

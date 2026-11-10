@@ -1,0 +1,6 @@
+{
+  "name": "Nexora - Digital Agency & AI Platform",
+  "description": "Build Smarter. Grow Faster. Full-service digital agency and AI automation company delivering web development, AI sales agents, e-commerce, and digital marketing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
