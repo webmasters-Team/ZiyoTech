@@ -150,7 +150,7 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
                 loop
                 muted
                 playsInline
-                poster={theme === 'dark' ? '/assets/brand/hero_robot_dark.jpg' : '/assets/brand/hero_robot_light.jpg'}
+                preload="auto"
               >
                 <source
                   src="/assets/1.mp4"
@@ -158,12 +158,6 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
                 />
               </video>
 
-              {/* Subtle edge vignette to blend seamlessly with platform background */}
-              <div className={`absolute inset-0 pointer-events-none ${
-                theme === 'dark'
-                  ? 'bg-gradient-to-t from-[#080C14]/40 via-transparent to-transparent'
-                  : 'bg-gradient-to-t from-slate-50/20 via-transparent to-transparent'
-              }`} />
             </div>
 
           </div>

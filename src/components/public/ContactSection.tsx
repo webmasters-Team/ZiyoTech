@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
+import { usePlatform } from '../../context/PlatformContext';
 import { servicesData } from '../../data/servicesData';
 import { Send, CheckCircle2, AlertCircle, Sparkles, MessageCircle, Mail } from 'lucide-react';
 
 export const ContactSection: React.FC = () => {
   const { language, t } = useLanguage();
+  const { addProjectRequest } = usePlatform();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -36,8 +38,18 @@ export const ContactSection: React.FC = () => {
 
     setIsSubmitting(true);
 
-    // Simulate reliable dispatch
-    setTimeout(() => {
+    window.setTimeout(() => {
+      addProjectRequest({
+        name: formData.name.trim(),
+        businessName: formData.businessName.trim(),
+        email: formData.email.trim(),
+        phoneOrTelegram: formData.phoneOrTelegram.trim(),
+        serviceId: formData.serviceId,
+        projectDesc: formData.projectDesc.trim(),
+        preferredLang: formData.preferredLang as 'uz' | 'ru' | 'en',
+        source: 'website',
+      });
+
       setIsSubmitting(false);
       setIsSuccess(true);
     }, 800);
@@ -75,6 +87,9 @@ export const ContactSection: React.FC = () => {
               <p className="text-slate-300 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
                 {t.contact.successDesc}
               </p>
+              <div className="rounded-xl border border-cyan-800/60 bg-cyan-950/20 px-4 py-3 text-xs text-cyan-200">
+                Your request is now saved in the platform dashboard under <span className="font-bold">Project Requests</span>.
+              </div>
               <div className="pt-4">
                 <button
                   onClick={() => {

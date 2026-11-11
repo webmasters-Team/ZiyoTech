@@ -98,3 +98,17 @@ export interface KnowledgeDoc {
   content: string;
   lastUpdated: string;
 }
+
+export interface ProjectRequest {
+  id: string;
+  name: string;
+  businessName: string;
+  email: string;
+  phoneOrTelegram: string;
+  serviceId: string;
+  projectDesc: string;
+  preferredLang: Language;
+  status: 'new' | 'review' | 'contacted' | 'completed';
+  source: 'website';
+  createdAt: string;
+}

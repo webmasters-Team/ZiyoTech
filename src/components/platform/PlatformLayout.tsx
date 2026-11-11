@@ -28,8 +28,10 @@ import {
   Shield,
   Menu,
   X,
-  Globe
+  Globe,
+  FolderKanban,
 } from 'lucide-react';
+import { ProjectRequestsView } from './ProjectRequestsView';
 
 interface PlatformLayoutProps {
   onBackToSite: () => void;
@@ -46,6 +48,7 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) 
   const navItems = [
     { id: 'overview', label: t.platform.overview, icon: LayoutDashboard },
     { id: 'inbox', label: t.platform.inbox, icon: MessageSquare, badge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined },
+    { id: 'requests', label: 'Project Requests', icon: FolderKanban },
     { id: 'instagram', label: t.platform.instagramAccounts, icon: Instagram },
     { id: 'products', label: t.platform.products, icon: Package },
     { id: 'orders', label: t.platform.orders, icon: ShoppingBag },
@@ -63,6 +66,8 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) 
         return <OverviewView onNavigateTab={setActiveTab} />;
       case 'inbox':
         return <InboxView />;
+      case 'requests':
+        return <ProjectRequestsView />;
       case 'instagram':
         return <InstagramAccountsView />;
       case 'products':
@@ -88,8 +93,6 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) 
 
   return (
     <div className="min-h-screen bg-[#080C14] text-slate-100 flex flex-col font-sans">
-      
-      {/* Top Header */}
       <header className="h-16 border-b border-slate-800 bg-[#0A101D]/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between z-30 sticky top-0">
         <div className="flex items-center gap-3">
           <button
@@ -109,23 +112,19 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) 
 
           <div className="h-5 w-px bg-slate-800 hidden sm:block" />
 
-          {/* Logo Mark */}
           <div className="flex items-center gap-2">
             <BrandLogo size="sm" showText={false} />
             <span className="text-sm font-bold text-white tracking-tight">ZiyoTech Platform</span>
           </div>
         </div>
 
-        {/* Right Info: Role & Language */}
         <div className="flex items-center gap-3">
-          {/* Role badge */}
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-950/40 border border-blue-900/60 text-xs">
             <Shield className="w-3.5 h-3.5 text-cyan-400" />
             <span className="text-slate-400 text-[11px]">{t.platform.role}</span>
             <span className="font-semibold text-white capitalize">{role.replace('_', ' ')}</span>
           </div>
 
-          {/* Lang switcher */}
           <div className="flex items-center gap-1 bg-blue-950/40 border border-blue-900/60 rounded-full px-2 py-0.5 text-xs">
             <Globe className="w-3 h-3 text-slate-400" />
             {(['uz', 'ru', 'en'] as const).map((l) => (
@@ -143,10 +142,7 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) 
         </div>
       </header>
 
-      {/* Main Body */}
       <div className="flex-1 flex overflow-hidden">
-        
-        {/* Sidebar - Desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r border-slate-800 bg-[#09101D] p-4 space-y-1 shrink-0 overflow-y-auto">
           <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
             Navigation
@@ -189,7 +185,6 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) 
           </div>
         </aside>
 
-        {/* Mobile Sidebar */}
         {mobileSidebarOpen && (
           <div className="fixed inset-0 z-40 md:hidden bg-black/80 backdrop-blur-sm flex">
             <div className="w-64 bg-[#09101D] h-full p-4 space-y-1 border-r border-slate-800">
@@ -225,13 +220,10 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) 
           </div>
         )}
 
-        {/* Content Area */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {renderActiveView()}
         </main>
-
       </div>
-
     </div>
   );
 };

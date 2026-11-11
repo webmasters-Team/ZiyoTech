@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../../context/ThemeContext';
 
 interface BrandLogoProps {
   className?: string;
@@ -11,6 +12,8 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = 'md',
   showText = true,
 }) => {
+  const { theme } = useTheme();
+
   const dimensionClasses = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -24,6 +27,8 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     lg: 'text-2xl sm:text-3xl',
     xl: 'text-3xl sm:text-4xl',
   }[size];
+
+  const isLightTheme = theme === 'light';
 
   return (
     <div className={`flex items-center gap-2.5 sm:gap-3 group shrink-0 select-none ${className}`}>
@@ -93,9 +98,9 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       </div>
 
       {showText && (
-        <span className={`${textSizeClasses} font-extrabold tracking-tight text-white font-sans flex items-center`}>
+        <span className={`${textSizeClasses} font-extrabold tracking-tight ${isLightTheme ? 'text-slate-900' : 'text-white'} font-sans flex items-center`}>
           <span>Ziyo</span>
-          <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-sky-200 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-blue-500 via-cyan-500 to-sky-400 bg-clip-text text-transparent">
             Tech
           </span>
         </span>

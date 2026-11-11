@@ -1,5 +1,44 @@
-import React, { createContext, useContext, useState } from 'react';
-import { ProductItem, OrderItem, Conversation, AiAgentConfig, KnowledgeDoc, UserRole } from '../types';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  setDoc,
+  updateDoc,
+  type DocumentData,
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { ProductItem, OrderItem, Conversation, AiAgentConfig, KnowledgeDoc, UserRole, ProjectRequest } from '../types';
+
+const PROJECT_REQUESTS_COLLECTION = 'projectRequests';
+
+const buildProjectRequestDocument = (request: Omit<ProjectRequest, 'id' | 'createdAt' | 'status'> & { id?: string; createdAt?: string; status?: ProjectRequest['status'] }) => ({
+  ...request,
+  id: request.id || `req-${Date.now()}`,
+  createdAt: request.createdAt || new Date().toISOString(),
+  status: request.status || 'new',
+});
+
+const normalizeProjectRequests = (items: DocumentData[]): ProjectRequest[] =>
+  items
+    .map((item) => ({
+      id: String(item.id || item.reqId || ''),
+      name: String(item.name || ''),
+      businessName: String(item.businessName || ''),
+      email: String(item.email || ''),
+      phoneOrTelegram: String(item.phoneOrTelegram || ''),
+      serviceId: String(item.serviceId || 'ai-automation'),
+      projectDesc: String(item.projectDesc || ''),
+      preferredLang: (item.preferredLang === 'ru' || item.preferredLang === 'en' ? item.preferredLang : 'uz') as ProjectRequest['preferredLang'],
+      status: (item.status === 'new' || item.status === 'review' || item.status === 'contacted' || item.status === 'completed' ? item.status : 'new') as ProjectRequest['status'],
+      source: item.source === 'website' ? 'website' : 'website',
+      createdAt: String(item.createdAt || new Date().toISOString()),
+    }))
+    .filter((item) => item.id);
 
 interface PlatformContextType {
   role: UserRole;
@@ -15,6 +54,9 @@ interface PlatformContextType {
   toggleHumanTakeover: (conversationId: string) => void;
   orders: OrderItem[];
   updateOrderStatus: (orderId: string, status: OrderItem['status']) => void;
+  projectRequests: ProjectRequest[];
+  addProjectRequest: (request: Omit<ProjectRequest, 'id' | 'createdAt' | 'status'>) => void;
+  updateProjectRequestStatus: (requestId: string, status: ProjectRequest['status']) => void;
   aiConfig: AiAgentConfig;
   updateAiConfig: (config: Partial<AiAgentConfig>) => void;
   knowledgeDocs: KnowledgeDoc[];
@@ -309,6 +351,37 @@ const initialKnowledge: KnowledgeDoc[] = [
   },
 ];
 
+const initialProjectRequests: ProjectRequest[] = [
+  {
+    id: 'req-1',
+    name: 'Samandar Karimov',
+    businessName: 'Kreativ Studio',
+    email: 'samandar@kreativstudio.uz',
+    phoneOrTelegram: '+998 90 112 34 56',
+    serviceId: 'ai-automation',
+    projectDesc: 'Instagram va Telegram uchun AI savdo agenti yaratishni xohlayman. Savollarni avtomatik javoblash va buyurtma faoliyatini tezlashtirish kerak.',
+    preferredLang: 'uz',
+    status: 'new',
+    source: 'website',
+    createdAt: '2026-11-10T09:30:00.000Z',
+  },
+  {
+    id: 'req-2',
+    name: 'Nargiza Tursunova',
+    businessName: 'Nargiza Beauty',
+    email: 'hello@nargizabeauty.uz',
+    phoneOrTelegram: '@nargiza_beauty',
+    serviceId: 'website-development',
+    projectDesc: 'Brend uchun modern landing page va online booking tizimi kerak. Mobile-friendly va premium dizayn talab qilinadi.',
+    preferredLang: 'ru',
+    status: 'review',
+    source: 'website',
+    createdAt: '2026-11-09T15:00:00.000Z',
+  },
+];
+
+const PROJECT_REQUESTS_STORAGE_KEY = 'ziotech-project-requests';
+
 const PlatformContext = createContext<PlatformContextType | undefined>(undefined);
 
 export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -317,7 +390,44 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
   const [activeConversationId, setActiveConversationId] = useState<string>('conv-1');
   const [orders, setOrders] = useState<OrderItem[]>(initialOrders);
+  const [projectRequests, setProjectRequests] = useState<ProjectRequest[]>(() => {
+    if (typeof window === 'undefined') {
+      return initialProjectRequests;
+    }
+
+    try {
+      const saved = window.localStorage.getItem(PROJECT_REQUESTS_STORAGE_KEY);
+      if (!saved) return initialProjectRequests;
+      const parsed = JSON.parse(saved) as ProjectRequest[];
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : initialProjectRequests;
+    } catch {
+      return initialProjectRequests;
+    }
+  });
   const [knowledgeDocs, setKnowledgeDocs] = useState<KnowledgeDoc[]>(initialKnowledge);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(PROJECT_REQUESTS_STORAGE_KEY, JSON.stringify(projectRequests));
+    }
+  }, [projectRequests]);
+
+  useEffect(() => {
+    if (!db) return;
+
+    const q = query(collection(db, PROJECT_REQUESTS_COLLECTION), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const firebaseRequests = normalizeProjectRequests(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+      setProjectRequests((prev) => {
+        if (firebaseRequests.length === 0) return prev;
+        return firebaseRequests;
+      });
+    }, () => {
+      // ignore snapshot errors and keep local fallback
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const [aiConfig, setAiConfig] = useState<AiAgentConfig>({
     isEnabled: true,
@@ -410,6 +520,31 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
   };
 
+  const addProjectRequest = (request: Omit<ProjectRequest, 'id' | 'createdAt' | 'status'>) => {
+    const newRequest = buildProjectRequestDocument({ ...request, id: `req-${Date.now()}` });
+
+    setProjectRequests((prev) => [newRequest, ...prev]);
+
+    if (db) {
+      const docRef = doc(db, PROJECT_REQUESTS_COLLECTION, newRequest.id);
+      setDoc(docRef, newRequest)
+        .catch(() => {
+          // no-op: local fallback already saved
+        });
+    }
+  };
+
+  const updateProjectRequestStatus = (requestId: string, status: ProjectRequest['status']) => {
+    setProjectRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, status } : r)));
+
+    if (db) {
+      const docRef = doc(db, PROJECT_REQUESTS_COLLECTION, requestId);
+      updateDoc(docRef, { status }).catch(() => {
+        // no-op: local fallback already saved
+      });
+    }
+  };
+
   const updateAiConfig = (config: Partial<AiAgentConfig>) => {
     setAiConfig((prev) => ({ ...prev, ...config }));
   };
@@ -451,6 +586,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         toggleHumanTakeover,
         orders,
         updateOrderStatus,
+        projectRequests,
+        addProjectRequest,
+        updateProjectRequestStatus,
         aiConfig,
         updateAiConfig,
         knowledgeDocs,
