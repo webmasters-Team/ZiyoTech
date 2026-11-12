@@ -30,10 +30,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
     aiConfig
   } = usePlatform();
 
-  const totalConversations = '000';
-  const aiHandledCount = '000';
-  const humanHandledCount = '000';
-  const totalOrdersCount = '000';
+  const totalConversations = conversations.length;
+  const aiHandledCount = conversations.filter((conversation) => conversation.status === 'ai_handling').length;
+  const humanHandledCount = conversations.filter((conversation) => conversation.status === 'human_takeover').length;
+  const totalOrdersCount = orders.length;
 
   return (
     <div className="space-y-8">
@@ -45,13 +45,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
           </div>
           <div>
             <div className="text-xs font-bold text-white flex items-center gap-2">
-              <span>Interactive Business Operations Sandbox</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
-                Live Simulation
-              </span>
+              <span>Interactive Business Operations Dashboard</span>
             </div>
             <p className="text-[11px] text-slate-300">
-              Operating with verified catalog data and official Meta Graph API message handling pipeline.
+              Live data from your connected systems.
             </p>
           </div>
         </div>
@@ -60,7 +57,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
           onClick={() => onNavigateTab('inbox')}
           className="text-xs font-semibold px-4 py-1.5 rounded-lg bg-cyan-500 text-black hover:bg-cyan-400 font-sans transition-colors"
         >
-          Open Live Inbox
+          Open Inbox
         </button>
       </div>
 
@@ -79,7 +76,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
           </div>
           <div className="mt-2 text-xs font-semibold text-slate-400 flex items-center gap-1 font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-            <span>000 baseline</span>
+            <span>live feed</span>
           </div>
         </div>
 
@@ -96,7 +93,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
           </div>
           <div className="mt-2 text-xs font-semibold text-slate-400 flex items-center gap-1 font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-            <span>0.0% conversion</span>
+            <span>orders</span>
           </div>
         </div>
 
@@ -109,11 +106,11 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono tabular-nums">
-            0.0%
+            {totalConversations ? `${Math.round((aiHandledCount / totalConversations) * 100)}%` : '0%'}
           </div>
           <div className="mt-2 text-xs font-semibold text-slate-400 flex items-center gap-1 font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-            <span>000 automated</span>
+            <span>{aiHandledCount} automated</span>
           </div>
         </div>
 
@@ -137,8 +134,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
 
       {/* Main Split: Trend Chart & Active Live Conversations */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left Column: Trend Graph & Resolution Breakdown (lg:col-span-7) */}
         <div className="lg:col-span-7 space-y-6">
           <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-5">
             <div className="flex items-center justify-between">
@@ -147,11 +142,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
                 <p className="text-xs text-slate-400">Daily message traffic over past 30 days</p>
               </div>
               <span className="text-xs px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 font-mono">
-                Last 30 days
+                Live data
               </span>
             </div>
 
-            {/* SVG Trendline Graphic */}
             <div className="relative h-44 w-full pt-4">
               <svg className="w-full h-full overflow-visible" viewBox="0 0 500 150">
                 <defs>
@@ -160,47 +154,42 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
                     <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.0" />
                   </linearGradient>
                 </defs>
-                {/* Area fill */}
                 <path
                   d="M 0,110 Q 50,130 100,90 T 200,80 T 300,45 T 400,60 T 500,20 L 500,150 L 0,150 Z"
                   fill="url(#neonGradient)"
                 />
-                {/* Line stroke */}
                 <path
                   d="M 0,110 Q 50,130 100,90 T 200,80 T 300,45 T 400,60 T 500,20"
                   fill="none"
                   stroke="#A855F7"
                   strokeWidth="3.5"
                 />
-                {/* Highlight point */}
                 <circle cx="300" cy="45" r="5" fill="#06B6D4" stroke="#fff" strokeWidth="2" />
                 <circle cx="500" cy="20" r="5" fill="#3B82F6" stroke="#fff" strokeWidth="2" />
               </svg>
 
               <div className="absolute top-6 left-60 px-2 py-0.5 rounded bg-purple-950 text-purple-300 text-[10px] font-bold border border-purple-800">
-                +24% Surge
+                {totalConversations ? '+Live data' : 'No data'}
               </div>
             </div>
 
-            {/* AI vs Human Distribution */}
             <div className="pt-4 border-t border-slate-800 grid grid-cols-2 gap-4 text-xs">
               <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
                 <div className="text-slate-400">Autonomous AI Handled</div>
                 <div className="text-lg font-bold text-cyan-400 mt-1 font-mono">
-                  {aiHandledCount.toLocaleString()} (92%)
+                  {aiHandledCount} ({totalConversations ? `${Math.round((aiHandledCount / totalConversations) * 100)}%` : '0%'})
                 </div>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
                 <div className="text-slate-400">Human Operator Escalations</div>
                 <div className="text-lg font-bold text-slate-200 mt-1 font-mono">
-                  {humanHandledCount.toLocaleString()} (8%)
+                  {humanHandledCount} ({totalConversations ? `${Math.round((humanHandledCount / totalConversations) * 100)}%` : '0%'})
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Live Recent Conversations (lg:col-span-5) */}
         <div className="lg:col-span-5 space-y-4">
           <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
             <div className="flex items-center justify-between">
@@ -215,55 +204,59 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
             </div>
 
             <div className="space-y-3">
-              {conversations.slice(0, 4).map((c) => (
-                <div
-                  key={c.id}
-                  onClick={() => onNavigateTab('inbox')}
-                  className="p-3.5 rounded-xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 cursor-pointer transition-colors space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <img
-                        src={c.customerAvatar}
-                        alt={c.customerName}
-                        className="w-7 h-7 rounded-full object-cover"
-                      />
-                      <div>
-                        <div className="text-xs font-semibold text-white">{c.customerName}</div>
-                        <div className="text-[10px] text-slate-400">@{c.customerHandle}</div>
+              {conversations.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-700 bg-slate-950/40 p-4 text-sm text-slate-400">
+                  No live inbound data available.
+                </div>
+              ) : (
+                conversations.slice(0, 4).map((c) => (
+                  <div
+                    key={c.id}
+                    onClick={() => onNavigateTab('inbox')}
+                    className="p-3.5 rounded-xl bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 cursor-pointer transition-colors space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <img
+                          src={c.customerAvatar}
+                          alt={c.customerName}
+                          className="w-7 h-7 rounded-full object-cover"
+                        />
+                        <div>
+                          <div className="text-xs font-semibold text-white">{c.customerName}</div>
+                          <div className="text-[10px] text-slate-400">@{c.customerHandle}</div>
+                        </div>
                       </div>
+
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                          c.status === 'ai_handling'
+                            ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
+                            : c.status === 'human_takeover'
+                              ? 'bg-amber-950 text-amber-300 border border-amber-800'
+                              : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                        }`}
+                      >
+                        {c.status === 'ai_handling' ? 'AI Active' : c.status === 'human_takeover' ? 'Operator' : 'Resolved'}
+                      </span>
                     </div>
 
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        c.status === 'ai_handling'
-                          ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
-                          : c.status === 'human_takeover'
-                          ? 'bg-amber-950 text-amber-300 border border-amber-800'
-                          : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                      }`}
-                    >
-                      {c.status === 'ai_handling' ? 'AI Active' : c.status === 'human_takeover' ? 'Operator' : 'Resolved'}
-                    </span>
-                  </div>
+                    <p className="text-xs text-slate-300 line-clamp-1">
+                      {c.lastMessage}
+                    </p>
 
-                  <p className="text-xs text-slate-300 line-clamp-1">
-                    {c.lastMessage}
-                  </p>
-
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono pt-1">
-                    <span>{c.lastTimestamp}</span>
-                    <span className="uppercase">{c.language}</span>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono pt-1">
+                      <span>{c.lastTimestamp}</span>
+                      <span className="uppercase">{c.language}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* Recent Orders Captured */}
       <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -309,8 +302,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
                         ord.status === 'confirmed'
                           ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
                           : ord.status === 'delivered'
-                          ? 'bg-blue-950 text-blue-400 border border-blue-800'
-                          : 'bg-amber-950 text-amber-400 border border-amber-800'
+                            ? 'bg-blue-950 text-blue-400 border border-blue-800'
+                            : 'bg-amber-950 text-amber-400 border border-amber-800'
                       }`}
                     >
                       {ord.status}

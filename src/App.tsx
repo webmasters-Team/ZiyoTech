@@ -19,6 +19,7 @@ import { PortfolioSection } from './components/public/PortfolioSection';
 import { ContactSection } from './components/public/ContactSection';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { Mic } from 'lucide-react';
+import { AdminLoginView } from './components/platform/AdminLoginView';
 
 type AppLanguage = 'uz' | 'ru' | 'en';
 
@@ -234,8 +235,21 @@ function FloatingPlatformAssistant({ onNavigate }: { onNavigate: (page: string, 
 
 function AppContent() {
   const { theme } = useTheme();
+  const [selectedServiceId, setSelectedServiceId] = useState<string>('web-dev');
+
+  const getAdminStatus = () => {
+    if (typeof window === 'undefined') return false;
+    const value = localStorage.getItem('ziotech-admin-auth');
+    return value === 'demo' || value === 'firebase';
+  };
+
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(getAdminStatus);
+
   const [currentPage, setCurrentPage] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'home';
+
     const path = window.location.pathname;
+    if (path === '/admin') return getAdminStatus() ? 'platform' : 'admin-login';
     if (path === '/app' || path.startsWith('/app/')) return 'platform';
     if (path === '/products' || path === '/ai-sales-agent') return 'product-sales-agent';
     if (path === '/services' || path === '/service-detail') return 'services';
@@ -246,24 +260,26 @@ function AppContent() {
     return 'home';
   });
 
-  const [selectedServiceId, setSelectedServiceId] = useState<string>('web-dev');
-
-  const handleNavigate = (page: string, serviceId?: string) => {
-    if (serviceId) {
-      setSelectedServiceId(serviceId);
-    }
-    setCurrentPage(page);
-
-    const path = page === 'home' ? '/' : `/${page === 'platform' ? 'app' : page}`;
-    window.history.pushState(null, '', path);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   useEffect(() => {
-    const handlePopState = () => {
+    const syncPageFromLocation = () => {
+      if (typeof window === 'undefined') return;
+
       const path = window.location.pathname;
-      if (path === '/app' || path.startsWith('/app/')) setCurrentPage('platform');
-      else if (path === '/products' || path === '/ai-sales-agent') setCurrentPage('product-sales-agent');
+      const isAuthenticated = getAdminStatus();
+
+      if (path === '/admin') {
+        setCurrentPage(isAuthenticated ? 'platform' : 'admin-login');
+        setIsAdminAuthenticated(isAuthenticated);
+        return;
+      }
+
+      if (path === '/app' || path.startsWith('/app/')) {
+        setCurrentPage('platform');
+        setIsAdminAuthenticated(isAuthenticated);
+        return;
+      }
+
+      if (path === '/products' || path === '/ai-sales-agent') setCurrentPage('product-sales-agent');
       else if (path === '/services' || path === '/service-detail') setCurrentPage('services');
       else if (path === '/ai-solutions') setCurrentPage('ai-solutions');
       else if (path === '/about') setCurrentPage('about');
@@ -272,70 +288,118 @@ function AppContent() {
       else setCurrentPage('home');
     };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', syncPageFromLocation);
+    syncPageFromLocation();
+
+    return () => window.removeEventListener('popstate', syncPageFromLocation);
   }, []);
 
-  const renderPublicPage = () => {
+  const handleNavigate = (page: string, serviceId?: string) => {
+    if (serviceId) {
+      setSelectedServiceId(serviceId);
+    }
+
+    if (page === 'platform') {
+      const authenticated = getAdminStatus();
+      if (!authenticated) {
+        setCurrentPage('admin-login');
+        setIsAdminAuthenticated(false);
+        window.history.pushState({}, '', '/admin');
+        return;
+      }
+
+      setCurrentPage('platform');
+      setIsAdminAuthenticated(true);
+      window.history.pushState({}, '', '/app');
+      return;
+    }
+
+    if (page === 'admin-login') {
+      setCurrentPage('admin-login');
+      setIsAdminAuthenticated(false);
+      window.history.pushState({}, '', '/admin');
+      return;
+    }
+
+    if (page === 'service-detail') {
+      setCurrentPage('service-detail');
+      window.history.pushState({}, '', '/services');
+      return;
+    }
+
+    const routeMap: Record<string, string> = {
+      home: '/',
+      services: '/services',
+      'ai-solutions': '/ai-solutions',
+      'product-sales-agent': '/products',
+      about: '/about',
+      portfolio: '/portfolio',
+      contact: '/contact',
+    };
+
+    setCurrentPage(page);
+    window.history.pushState({}, '', routeMap[page] || '/');
+  };
+
+  const handleAdminLogin = () => {
+    setIsAdminAuthenticated(true);
+    setCurrentPage('platform');
+    window.history.pushState({}, '', '/app');
+  };
+
+  const handleBackToSite = () => {
+    setCurrentPage('home');
+    setIsAdminAuthenticated(false);
+    localStorage.removeItem('ziotech-admin-auth');
+    window.history.pushState({}, '', '/');
+  };
+
+  const renderContent = () => {
+    if (currentPage === 'admin-login') {
+      return <AdminLoginView onBackToSite={() => handleNavigate('home')} onLogin={handleAdminLogin} />;
+    }
+
+    if (currentPage === 'platform' && !isAdminAuthenticated) {
+      return <AdminLoginView onBackToSite={() => handleNavigate('home')} onLogin={handleAdminLogin} />;
+    }
+
+    if (currentPage === 'platform') {
+      return <PlatformLayout onBackToSite={handleBackToSite} />;
+    }
+
     switch (currentPage) {
-      case 'home':
-        return <PublicHome onNavigate={handleNavigate} />;
-      case 'services':
-        return (
-          <div className="py-8">
-            <ServicesSection onNavigate={handleNavigate} />
-          </div>
-        );
-      case 'service-detail':
-        return <ServiceDetailPage serviceId={selectedServiceId} onNavigate={handleNavigate} />;
-      case 'ai-solutions':
-        return (
-          <div className="py-8">
-            <AiSolutionsSection onNavigate={handleNavigate} />
-          </div>
-        );
       case 'product-sales-agent':
         return <ProductSalesAgentPage onNavigate={handleNavigate} />;
+      case 'service-detail':
+        return <ServiceDetailPage serviceId={selectedServiceId} onNavigate={handleNavigate} />;
+      case 'services':
+        return <ServicesSection onNavigate={handleNavigate} />;
+      case 'ai-solutions':
+        return <AiSolutionsSection onNavigate={handleNavigate} />;
       case 'about':
-        return (
-          <div className="py-8">
-            <AboutSection onNavigate={handleNavigate} />
-          </div>
-        );
+        return <AboutSection onNavigate={handleNavigate} />;
       case 'portfolio':
-        return (
-          <div className="py-8">
-            <PortfolioSection onNavigate={handleNavigate} />
-          </div>
-        );
+        return <PortfolioSection onNavigate={handleNavigate} />;
       case 'contact':
-        return (
-          <div className="py-8">
-            <ContactSection />
-          </div>
-        );
+        return <ContactSection />;
       default:
         return <PublicHome onNavigate={handleNavigate} />;
     }
   };
 
   return (
-    <div
-      className={`min-h-screen flex flex-col transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-[#080C14] text-slate-100' : 'bg-slate-50 text-slate-900'
-      } selection:bg-blue-600 selection:text-white`}
-    >
-      <FloatingPlatformAssistant onNavigate={handleNavigate} />
-
-      {currentPage === 'platform' ? (
-        <PlatformLayout onBackToSite={() => handleNavigate('home')} />
-      ) : (
-        <>
-          <Header onNavigate={handleNavigate} currentPage={currentPage} />
-          <main className="flex-1">{renderPublicPage()}</main>
-          <Footer onNavigate={handleNavigate} />
-        </>
+    <div className={theme === 'dark' ? 'dark' : 'light'}>
+      {!['platform', 'admin-login'].includes(currentPage) && (
+        <Header onNavigate={handleNavigate} currentPage={currentPage} />
       )}
+
+      <main className="min-h-screen bg-[#080C14] text-slate-100">
+        {renderContent()}
+      </main>
+
+      {!['platform', 'admin-login'].includes(currentPage) && <Footer onNavigate={handleNavigate} />}
+
+      {!['platform', 'admin-login'].includes(currentPage) && <FloatingPlatformAssistant onNavigate={handleNavigate} />}
     </div>
   );
 }

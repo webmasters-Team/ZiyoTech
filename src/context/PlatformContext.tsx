@@ -73,252 +73,7 @@ interface PlatformContextType {
   toggleInstagramConnection: () => void;
 }
 
-const initialProducts: ProductItem[] = [
-  {
-    id: 'prod-1',
-    name: 'Klassik Teri Sumka (Milano Tote)',
-    category: 'Aksessuarlar',
-    price: 499000,
-    stock: 18,
-    sku: 'NX-BAG-01',
-    description: 'Yuqori sifatli tabiiy charm, zamonaviy dizayn va keng sig\'im.',
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 'prod-2',
-    name: 'Oversize Jun Palto (Winter Cashmere)',
-    category: 'Ustki Kiyim',
-    price: 1250000,
-    stock: 7,
-    sku: 'NX-COAT-04',
-    description: 'Issiq kashmir matosi, qulay bichim, qish mavsumi uchun ideal.',
-    image: 'https://images.unsplash.com/photo-1539533018447-63fcce667823?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 'prod-3',
-    name: 'Minimalist Aqlli Soat (Chronos Pro)',
-    category: 'Elektronika',
-    price: 890000,
-    stock: 24,
-    sku: 'NX-WATCH-99',
-    description: 'AMOLED ekran, 14 kunlik batareya, yurak urishi va sport monitoringi.',
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 'prod-4',
-    name: 'Skandinav Dizayn Kursisi (Nordic Oak)',
-    category: 'Mebel',
-    price: 1850000,
-    stock: 5,
-    sku: 'NX-CHAIR-12',
-    description: 'Tabiiy eman daraxti, ortopedik yumshoq o\'rindiq.',
-    image: 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 'prod-5',
-    name: 'Simsiz Shovqinni So\'ndiruvchi Quloqlik',
-    category: 'Elektronika',
-    price: 640000,
-    stock: 32,
-    sku: 'NX-AUDIO-02',
-    description: 'ANC faol shovqinni to\'sish, Hi-Fi ovoz sifati, 30 soat ishlash.',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=400&q=80',
-  },
-];
-
-const initialConversations: Conversation[] = [
-  {
-    id: 'conv-1',
-    customerName: 'Madina Umarova',
-    customerHandle: 'madina_u',
-    customerAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
-    lastMessage: 'Albatta! Ushbu mahsulotning narxi — 499 000 so\'m.',
-    lastTimestamp: 'Hozirgina',
-    unreadCount: 0,
-    status: 'ai_handling',
-    channel: 'instagram',
-    language: 'uz',
-    tags: ['Yangi mijoz', 'Sumka so\'rovi'],
-    customerNotes: 'Klassik charm sumka qidirmoqda, Toshkent shahriga yetkazib berish so\'radi.',
-    messages: [
-      {
-        id: 'm1',
-        sender: 'customer',
-        text: 'Assalomu alaykum, bu sumka qancha turadi?',
-        timestamp: '14:20',
-      },
-      {
-        id: 'm2',
-        sender: 'ai',
-        text: 'Vaalaykum assalom, Madina! "Klassik Teri Sumka (Milano Tote)" narxi 499 000 so\'m. Mahsulot hozirda omborimizda 18 dona mavjud. Yetkazib berish Toshkent bo\'yicha 1 kun ichida bepul amalga oshiriladi. Buyurtma berishni xohlaysizmi?',
-        timestamp: '14:20',
-        productCard: {
-          name: 'Klassik Teri Sumka (Milano Tote)',
-          price: '499 000 so\'m',
-          image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=80',
-        },
-      },
-    ],
-  },
-  {
-    id: 'conv-2',
-    customerName: 'Jasur Beknazarov',
-    customerHandle: 'jasur_tech',
-    customerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
-    lastMessage: 'Здравствуйте! Есть ли в наличии черное пальто размера L?',
-    lastTimestamp: '8 daqiqa oldin',
-    unreadCount: 1,
-    status: 'human_takeover',
-    channel: 'instagram',
-    language: 'ru',
-    assignedTo: 'Alisher (Meneger)',
-    tags: ['VIP', 'Katta buyurtma'],
-    customerNotes: 'Doimiy xaridor. Xodim bilan gaplashmoqchi bo\'ldi.',
-    messages: [
-      {
-        id: 'm3',
-        sender: 'customer',
-        text: 'Здравствуйте! Есть ли в наличии черное пальто размера L?',
-        timestamp: '14:10',
-      },
-      {
-        id: 'm4',
-        sender: 'ai',
-        text: 'Здравствуйте! "Oversize Jun Palto" размера L в наличии (осталось 3 единицы). Стоимость 1 250 000 сум.',
-        timestamp: '14:10',
-      },
-      {
-        id: 'm5',
-        sender: 'customer',
-        text: 'Можно соединить с менеджером для примерки в шоуруме?',
-        timestamp: '14:12',
-      },
-      {
-        id: 'm6',
-        sender: 'ai',
-        text: 'Конечно! Передаю ваш диалог нашему ведущему менеджеру Алишеру. Он свяжется с вами в течение пары минут.',
-        timestamp: '14:12',
-      },
-    ],
-  },
-  {
-    id: 'conv-3',
-    customerName: 'Dilnoza Karimova',
-    customerHandle: 'dilnoza_k',
-    customerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
-    lastMessage: 'Yetkazib berish shartlari qanday?',
-    lastTimestamp: '25 daqiqa oldin',
-    unreadCount: 0,
-    status: 'ai_handling',
-    channel: 'instagram',
-    language: 'uz',
-    tags: ['Savol'],
-    messages: [
-      {
-        id: 'm7',
-        sender: 'customer',
-        text: 'Samarqandga yetkazib berish qancha turadi va necha kunda boradi?',
-        timestamp: '13:50',
-      },
-      {
-        id: 'm8',
-        sender: 'ai',
-        text: 'Assalomu alaykum! Samarqand shahriga yetkazib berish BTS yoki Fargo pochta orqali 25 000 so\'m. Yetkazish muddati 1-2 ish kuni. Qaysi mahsulotga qiziqayapsiz?',
-        timestamp: '13:50',
-      },
-    ],
-  },
-  {
-    id: 'conv-4',
-    customerName: 'Shaxzod Aliyev',
-    customerHandle: 'shaxzod_al',
-    customerAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80',
-    lastMessage: 'Buyurtma tasdiqlandi. Rahmat!',
-    lastTimestamp: '1 soat oldin',
-    unreadCount: 0,
-    status: 'resolved',
-    channel: 'instagram',
-    language: 'uz',
-    tags: ['Xarid qildi'],
-    messages: [
-      {
-        id: 'm9',
-        sender: 'customer',
-        text: 'Aqlli soatga buyurtma bermoqchiman.',
-        timestamp: '13:00',
-      },
-      {
-        id: 'm10',
-        sender: 'ai',
-        text: 'Ajoyib tanlov! Ismingiz, telefon raqamingiz va yetkazish manzilini yozib qoldiring.',
-        timestamp: '13:01',
-      },
-      {
-        id: 'm11',
-        sender: 'customer',
-        text: 'Shaxzod Aliyev, +998901234567, Yunusobod 14-mavze.',
-        timestamp: '13:03',
-      },
-      {
-        id: 'm12',
-        sender: 'ai',
-        text: 'Buyurtmangiz #NX-858 raqami bilan qabul qilindi. Tez orada kuryer siz bilan bog\'lanadi.',
-        timestamp: '13:03',
-      },
-    ],
-  },
-];
-
-const initialOrders: OrderItem[] = [
-  {
-    id: 'ord-1',
-    orderNumber: 'NX-858',
-    customerName: 'Shaxzod Aliyev',
-    customerHandle: '@shaxzod_al',
-    phone: '+998 90 123 45 67',
-    productName: 'Minimalist Aqlli Soat (Chronos Pro)',
-    amount: 890000,
-    date: '2026-11-09 13:03',
-    status: 'confirmed',
-    source: 'Instagram DM',
-  },
-  {
-    id: 'ord-2',
-    orderNumber: 'NX-857',
-    customerName: 'Nilufar Rahimova',
-    customerHandle: '@nilu_style',
-    phone: '+998 97 765 43 21',
-    productName: 'Klassik Teri Sumka (Milano Tote)',
-    amount: 499000,
-    date: '2026-11-09 11:42',
-    status: 'delivered',
-    source: 'Instagram DM',
-  },
-  {
-    id: 'ord-3',
-    orderNumber: 'NX-856',
-    customerName: 'Bobur Mansurov',
-    customerHandle: '@bobur_m',
-    phone: '+998 93 555 12 34',
-    productName: 'Oversize Jun Palto (Winter Cashmere)',
-    amount: 1250000,
-    date: '2026-11-08 19:15',
-    status: 'confirmed',
-    source: 'Instagram DM',
-  },
-  {
-    id: 'ord-4',
-    orderNumber: 'NX-855',
-    customerName: 'Kamila Saidova',
-    customerHandle: '@kamila_s',
-    phone: '+998 91 888 99 00',
-    productName: 'Simsiz Shovqinni So\'ndiruvchi Quloqlik',
-    amount: 640000,
-    date: '2026-11-08 15:30',
-    status: 'pending',
-    source: 'Instagram DM',
-  },
-];
+const initialOrders: OrderItem[] = [];
 
 const initialKnowledge: KnowledgeDoc[] = [
   {
@@ -351,34 +106,7 @@ const initialKnowledge: KnowledgeDoc[] = [
   },
 ];
 
-const initialProjectRequests: ProjectRequest[] = [
-  {
-    id: 'req-1',
-    name: 'Samandar Karimov',
-    businessName: 'Kreativ Studio',
-    email: 'samandar@kreativstudio.uz',
-    phoneOrTelegram: '+998 90 112 34 56',
-    serviceId: 'ai-automation',
-    projectDesc: 'Instagram va Telegram uchun AI savdo agenti yaratishni xohlayman. Savollarni avtomatik javoblash va buyurtma faoliyatini tezlashtirish kerak.',
-    preferredLang: 'uz',
-    status: 'new',
-    source: 'website',
-    createdAt: '2026-11-10T09:30:00.000Z',
-  },
-  {
-    id: 'req-2',
-    name: 'Nargiza Tursunova',
-    businessName: 'Nargiza Beauty',
-    email: 'hello@nargizabeauty.uz',
-    phoneOrTelegram: '@nargiza_beauty',
-    serviceId: 'website-development',
-    projectDesc: 'Brend uchun modern landing page va online booking tizimi kerak. Mobile-friendly va premium dizayn talab qilinadi.',
-    preferredLang: 'ru',
-    status: 'review',
-    source: 'website',
-    createdAt: '2026-11-09T15:00:00.000Z',
-  },
-];
+const initialProjectRequests: ProjectRequest[] = [];
 
 const PROJECT_REQUESTS_STORAGE_KEY = 'ziotech-project-requests';
 
@@ -386,48 +114,43 @@ const PlatformContext = createContext<PlatformContextType | undefined>(undefined
 
 export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [role, setRole] = useState<UserRole>('business_owner');
-  const [products, setProducts] = useState<ProductItem[]>(initialProducts);
-  const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
-  const [activeConversationId, setActiveConversationId] = useState<string>('conv-1');
+  const [products, setProducts] = useState<ProductItem[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string>('');
   const [orders, setOrders] = useState<OrderItem[]>(initialOrders);
-  const [projectRequests, setProjectRequests] = useState<ProjectRequest[]>(() => {
-    if (typeof window === 'undefined') {
-      return initialProjectRequests;
-    }
-
-    try {
-      const saved = window.localStorage.getItem(PROJECT_REQUESTS_STORAGE_KEY);
-      if (!saved) return initialProjectRequests;
-      const parsed = JSON.parse(saved) as ProjectRequest[];
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : initialProjectRequests;
-    } catch {
-      return initialProjectRequests;
-    }
-  });
+  const [projectRequests, setProjectRequests] = useState<ProjectRequest[]>(initialProjectRequests);
   const [knowledgeDocs, setKnowledgeDocs] = useState<KnowledgeDoc[]>(initialKnowledge);
+
+  useEffect(() => {
+    if (!db) return;
+
+    const q = query(collection(db, PROJECT_REQUESTS_COLLECTION), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const firebaseRequests = normalizeProjectRequests(
+          snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            reqId: docSnap.id,
+            ...docSnap.data(),
+          }))
+        );
+
+        setProjectRequests(firebaseRequests);
+      },
+      (error) => {
+        console.warn('Failed to load project requests from Firestore:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(PROJECT_REQUESTS_STORAGE_KEY, JSON.stringify(projectRequests));
     }
   }, [projectRequests]);
-
-  useEffect(() => {
-    if (!db) return;
-
-    const q = query(collection(db, PROJECT_REQUESTS_COLLECTION), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const firebaseRequests = normalizeProjectRequests(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
-      setProjectRequests((prev) => {
-        if (firebaseRequests.length === 0) return prev;
-        return firebaseRequests;
-      });
-    }, () => {
-      // ignore snapshot errors and keep local fallback
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const [aiConfig, setAiConfig] = useState<AiAgentConfig>({
     isEnabled: true,
