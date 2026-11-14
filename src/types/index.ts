@@ -22,6 +22,8 @@ export interface DemoProject {
   technologies: string[];
   metrics: string;
   image: string;
+  link?: string;
+  imageClassName?: string;
 }
 
 export interface ProductItem {

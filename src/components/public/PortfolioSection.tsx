@@ -40,7 +40,26 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ onNavigate }
           {demoCaseStudies.map((project) => (
             <div
               key={project.id}
-              className="rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-blue-500/30 overflow-hidden transition-all group flex flex-col justify-between"
+              className="rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-blue-500/30 overflow-hidden transition-all group flex flex-col justify-between cursor-pointer"
+              onClick={() => {
+                if (project.link) {
+                  window.open(project.link, '_blank', 'noopener,noreferrer');
+                } else {
+                  onNavigate('contact');
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  if (project.link) {
+                    window.open(project.link, '_blank', 'noopener,noreferrer');
+                  } else {
+                    onNavigate('contact');
+                  }
+                }
+              }}
             >
               <div>
                 {/* Project Image */}
@@ -52,7 +71,7 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ onNavigate }
                     onError={(e) => {
                       (e.currentTarget as HTMLElement).style.display = 'none';
                     }}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${project.imageClassName || ''}`}
                   />
                   <div className="absolute inset-0 bg-gradient-to-tr from-blue-950/60 via-slate-900 to-indigo-950/60 -z-1 flex items-center justify-center text-slate-500 font-mono text-xs">
                     {project.title} Blueprint
@@ -99,7 +118,15 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ onNavigate }
               {/* Bottom Action */}
               <div className="p-6 pt-0">
                 <button
-                  onClick={() => onNavigate('contact')}
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (project.link) {
+                      window.open(project.link, '_blank', 'noopener,noreferrer');
+                    } else {
+                      onNavigate('contact');
+                    }
+                  }}
                   className="w-full py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-xs font-bold text-white transition-colors flex items-center justify-center gap-2"
                 >
                   <span>{language === 'ru' ? 'Запросить аналогичное решение' : language === 'en' ? 'Request Similar Blueprint' : 'Shunday yechimga buyurtma berish'}</span>
