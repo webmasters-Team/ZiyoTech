@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { GoogleGenAI } from '@google/genai';
 import { createSalesAssistant } from './salesEngine.js';
 import { createTelegramBot } from './telegramBot.js';
 import {
@@ -34,6 +35,53 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const websiteAssistantModel = 'gemini-3.8-flash';
+const websiteAssistantClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+
+const WEBSITE_SERVICES_CONTEXT = `
+ZiyoTech website service categories currently represented in this project:
+- Website Development / AI-ready website development
+- E-commerce solutions
+- AI agents and business automation
+- Social media management (SMM)
+- Professional photo and video content
+- Branding and graphic design
+- Digital marketing
+- Custom digital solutions
+
+Use only this verified project information. Do not invent prices or guarantees. If the user asks about a service not clearly listed, explain that the project includes these service categories and ask a clarifying question.
+`;
+
+const normalizeLanguage = (value) => {
+  const requested = String(value || 'en').trim().toLowerCase();
+  return ['uz', 'ru', 'en'].includes(requested) ? requested : 'en';
+};
+
+const sanitizeText = (value, maxLength = 2000) => {
+  if (typeof value !== 'string') return '';
+  const text = value.trim();
+  if (!text) return '';
+  return text.slice(0, maxLength);
+};
+
+const normalizeHistory = (history, maxItems = 8, maxLength = 1000) => {
+  if (!Array.isArray(history)) return [];
+
+  return history
+    .filter((entry) => entry && typeof entry === 'object')
+    .map((entry) => ({
+      role: entry.role === 'assistant' ? 'assistant' : 'user',
+      text: sanitizeText(entry.text, maxLength),
+    }))
+    .filter((entry) => entry.text)
+    .slice(-maxItems);
+};
+
+const buildAssistantSystemPrompt = (language) => {
+  const languageName = language === 'uz' ? 'Uzbek' : language === 'ru' ? 'Russian' : 'English';
+
+  return `You are a helpful ZiyoTech website consultant. Speak in ${languageName}. Use only the verified service information in this project. Do not invent prices, promises, guarantees, or company details. If a fact is not clearly present in the project, say you need more detail instead of guessing. Keep answers concise, clear, and professional. This is a website guidance assistant only; do not ask for contact details, create leads, or trigger navigation. Explain the relevant ZiyoTech services clearly and answer user questions about the business offerings represented in the project.\n\n${WEBSITE_SERVICES_CONTEXT}`;
+};
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
@@ -51,6 +99,60 @@ app.get('/', (_req, res) => {
     message: 'API server is running. Use the frontend at http://localhost:3000 or the API routes under /api.',
     endpoints: ['/api/health', '/api/admin/login', '/api/businesses', '/api/catalog'],
   });
+});
+
+app.post('/api/assistant/chat', async (req, res) => {
+  try {
+    const { message, history, language = 'en' } = req.body || {};
+    const normalizedLanguage = normalizeLanguage(language);
+    const cleanedMessage = sanitizeText(message, 1200);
+    const cleanedHistory = normalizeHistory(history, 8, 1000);
+
+    if (!cleanedMessage) {
+      return res.status(400).json({ error: 'Message text is required.' });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ error: 'AI assistant is temporarily unavailable.' });
+    }
+
+    const chatHistory = cleanedHistory.length
+      ? cleanedHistory
+          .map((entry) => `${entry.role === 'assistant' ? 'Assistant' : 'User'}: ${entry.text}`)
+          .join('\n')
+      : '';
+
+    const prompt = [
+      `User language: ${normalizedLanguage}`,
+      `Conversation history:\n${chatHistory || 'No previous messages.'}`,
+      `Current user message:\n${cleanedMessage}`,
+      'Answer as a knowledgeable ZiyoTech website consultant using only the verified service information in the project. Do not invent pricing, promises, or company details. If something is not confirmed by the project, say so clearly and ask a helpful follow-up question.',
+    ].join('\n\n');
+
+    const response = await websiteAssistantClient.models.generateContent({
+      model: websiteAssistantModel,
+      contents: `${buildAssistantSystemPrompt(normalizedLanguage)}\n\n${prompt}`,
+    });
+
+    const answer = typeof response?.text === 'string' && response.text.trim()
+      ? response.text.trim()
+      : 'I can help explain the ZiyoTech services shown in this project. Please tell me which service or question you want to explore.';
+
+    return res.json({
+      success: true,
+      language: normalizedLanguage,
+      response: answer,
+      source: 'gemini-server-side',
+    });
+  } catch (error) {
+    const message = error?.message || 'AI assistant failed to respond.';
+    console.error('[assistant-chat] failed', message);
+
+    return res.status(500).json({
+      success: false,
+      error: 'The assistant could not answer at the moment. Please try again shortly.',
+    });
+  }
 });
 
 app.post('/api/chat', async (req, res) => {
