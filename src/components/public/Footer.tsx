@@ -94,7 +94,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   onClick={() => onNavigate('services')}
                   className="text-cyan-400 hover:underline inline-flex items-center gap-1"
                 >
-                  <span>{language === 'ru' ? 'Все 8 услуг' : language === 'en' ? 'All 8 Services' : 'Barcha 8 xizmat'}</span>
+                  <span>{language === 'ru' ? 'Все 8 услуг' : language === 'en' ? 'Explore All 8 Services' : 'Barcha 8 xizmatni ko\'rish'}</span>
                   <ArrowUpRight className="w-3 h-3" />
                 </button>
               </li>

@@ -20,7 +20,8 @@ import {
   TrendingUp,
   Cpu,
   Globe2,
-  ChevronRight
+  ChevronRight,
+  Check,
 } from 'lucide-react';
 
 interface ServicesSectionProps {
@@ -200,12 +201,80 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
 
   const flagshipService = servicesData.find((s) => s.id === 'ai-automation')!;
 
+  const handleServicePreview = (service: ServiceItem) => {
+    onNavigate('service-detail', service.id);
+  };
+
+  const handleServiceQuote = (service: ServiceItem) => {
+    onNavigate('service-detail', service.id);
+  };
+
+  const websitePricingTiers = [
+    {
+      name: language === 'ru' ? 'Статические сайты' : language === 'en' ? 'Static Website' : 'Statik sayt',
+      price: '$100+',
+      badge: language === 'ru' ? 'База' : language === 'en' ? 'Starter' : 'Boshlangich',
+      popular: false,
+      description: language === 'ru'
+        ? 'Отличный вариант для небольшого бизнеса, лендинга или презентационной страницы.'
+        : language === 'en'
+        ? 'A clean option for a small business, landing page, or a polished presentation website.'
+        : 'Kichik biznes, landing va taqdimot saytlarida yaxshi ishlaydigan baza variant.',
+      features: [
+        { label: language === 'ru' ? 'До 5 страниц' : language === 'en' ? 'Up to 5 pages' : '5 sahifagacha', value: true },
+        { label: language === 'ru' ? 'Адаптивный дизайн' : language === 'en' ? 'Responsive design' : 'Moslashuvchan dizayn', value: true },
+        { label: language === 'ru' ? 'Форма обратной связи' : language === 'en' ? 'Contact form' : 'Bog`lanish formasi', value: true },
+        { label: language === 'ru' ? 'Интеграции' : language === 'en' ? 'Integrations' : 'Integratsiyalar', value: false },
+        { label: language === 'ru' ? 'Админ-панель' : language === 'en' ? 'Admin dashboard' : 'Admin panel', value: false },
+        { label: language === 'ru' ? 'Бэкенд и база данных' : language === 'en' ? 'Backend & database' : 'Backend va ma`lumotlar bazasi', value: false },
+      ],
+    },
+    {
+      name: language === 'ru' ? 'Веб-сервисы' : language === 'en' ? 'Web Services' : 'Veb-xizmatlar',
+      price: '$200+',
+      badge: language === 'ru' ? 'Популярно' : language === 'en' ? 'Popular' : 'Mashhur',
+      popular: true,
+      description: language === 'ru'
+        ? 'Подходит для компаний, которым нужен функциональный сайт с формами, логикой и ростом продаж.'
+        : language === 'en'
+        ? 'Built for teams that need a more functional site with forms, workflows, and stronger conversion support.'
+        : 'Formalar, ish jarayonlari va ko`proq sotuvni qo`llab-quvvatlaydigan funksional saytlar uchun mos.',
+      features: [
+        { label: language === 'ru' ? 'До 10 страниц' : language === 'en' ? 'Up to 10 pages' : '10 sahifagacha', value: true },
+        { label: language === 'ru' ? 'Адаптивный дизайн' : language === 'en' ? 'Responsive design' : 'Moslashuvchan dizayn', value: true },
+        { label: language === 'ru' ? 'Форма обратной связи' : language === 'en' ? 'Contact form' : 'Bog`lanish formasi', value: true },
+        { label: language === 'ru' ? 'Интеграции' : language === 'en' ? 'Integrations' : 'Integratsiyalar', value: true },
+        { label: language === 'ru' ? 'Админ-панель' : language === 'en' ? 'Admin dashboard' : 'Admin panel', value: false },
+        { label: language === 'ru' ? 'Бэкенд и база данных' : language === 'en' ? 'Backend & database' : 'Backend va ma`lumotlar bazasi', value: false },
+      ],
+    },
+    {
+      name: language === 'ru' ? 'Проекты full-stack разработки' : language === 'en' ? 'Full-Stack Development Projects' : 'Full-stack ishlab chiqish loyihalari',
+      price: '$300+',
+      badge: language === 'ru' ? 'Проект' : language === 'en' ? 'Business' : 'Biznes',
+      popular: false,
+      description: language === 'ru'
+        ? 'Полная система с админкой, логикой, API, пользователями, базой данных и масштабированием под рост бизнеса.'
+        : language === 'en'
+        ? 'A complete business platform with admin tools, data management, APIs, and scalable backend architecture.'
+        : 'Admin panel, API, foydalanuvchilar, ma`lumotlar bazasi va biznes o`sishini qo`llab-quvvatlovchi to`liq platforma.',
+      features: [
+        { label: language === 'ru' ? 'До 20+ страниц' : language === 'en' ? '20+ pages' : '20+ sahifa', value: true },
+        { label: language === 'ru' ? 'Адаптивный дизайн' : language === 'en' ? 'Responsive design' : 'Moslashuvchan dizayn', value: true },
+        { label: language === 'ru' ? 'Форма обратной связи' : language === 'en' ? 'Contact form' : 'Bog`lanish formasi', value: true },
+        { label: language === 'ru' ? 'Интеграции' : language === 'en' ? 'Integrations' : 'Integratsiyalar', value: true },
+        { label: language === 'ru' ? 'Админ-панель' : language === 'en' ? 'Admin dashboard' : 'Admin panel', value: true },
+        { label: language === 'ru' ? 'Бэкенд и база данных' : language === 'en' ? 'Backend & database' : 'Backend va ma`lumotlar bazasi', value: true },
+      ],
+    },
+  ];
+
   return (
     <section id="services" className="relative w-full py-12 sm:py-16 lg:py-24 bg-[#080C14] overflow-hidden">
       
       {/* Ambient background glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none -z-10" />
-      <div className="absolute bottom-10 right-10 w-[500px] h-[350px] bg-cyan-600/10 rounded-full blur-[100px] pointer-events-none -z-10" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-175 h-100 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none -z-10" />
+      <div className="absolute bottom-10 right-10 w-125 h-87.5 bg-cyan-600/10 rounded-full blur-[100px] pointer-events-none -z-10" />
 
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -235,8 +304,8 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
                 onClick={() => setActiveCategory(cat.id)}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-600/25 border border-blue-400/50 scale-[1.02]'
-                    : 'bg-white/[0.03] text-slate-300 hover:text-white hover:bg-white/[0.07] border border-white/[0.08]'
+                    ? 'bg-linear-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-600/25 border border-blue-400/50 scale-[1.02]'
+                    : 'bg-white/3 text-slate-300 hover:text-white hover:bg-white/7 border border-white/8'
                 }`}
               >
                 {cat.label}
@@ -247,7 +316,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
 
         {/* FLAGSHIP SPOTLIGHT BENTO: ZiyoTech AI Sales Agent & Automation */}
         {(activeCategory === 'all' || activeCategory === 'AI & Automation') && (
-          <div className="mb-10 sm:mb-14 rounded-3xl bg-gradient-to-br from-[#0B1528] via-[#08101E] to-[#040813] border-2 border-blue-500/40 p-6 sm:p-8 lg:p-10 shadow-2xl relative overflow-hidden group">
+          <div className="mb-10 sm:mb-14 rounded-3xl bg-linear-to-br from-[#0B1528] via-[#08101E] to-[#040813] border-2 border-blue-500/40 p-6 sm:p-8 lg:p-10 shadow-2xl relative overflow-hidden group">
             
             {/* Top Right Flagship Badge */}
             <div className="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-blue-500/20">
@@ -300,16 +369,16 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
 
                 <div className="pt-2 flex flex-wrap items-center gap-3">
                   <button
-                    onClick={() => setSelectedService(flagshipService)}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-xl shadow-blue-600/30 transition-all"
+                    onClick={() => handleServicePreview(flagshipService)}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold text-white bg-linear-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-xl shadow-blue-600/30 transition-all"
                   >
                     <span>{t.services.viewDetails}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
 
                   <button
-                    onClick={() => onNavigate('contact')}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] transition-all"
+                    onClick={() => handleServiceQuote(flagshipService)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold text-slate-300 hover:text-white bg-white/4 hover:bg-white/8 border border-white/10 transition-all"
                   >
                     <span>{t.services.requestConsultation}</span>
                     <ChevronRight className="w-4 h-4 text-cyan-400" />
@@ -320,7 +389,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
               {/* Right Column: Live Telemetry / Impact Showcase */}
               <div className="lg:col-span-5 space-y-3">
                 <div className="p-4 rounded-2xl bg-black/40 border border-blue-500/25 space-y-3 backdrop-blur-md">
-                  <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+                  <div className="flex items-center justify-between pb-2 border-b border-white/8">
                     <span className="text-xs font-mono text-slate-400">Performance Benchmarks</span>
                     <span className="text-xs font-mono text-cyan-400 flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
@@ -329,19 +398,19 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <div className="p-3 rounded-xl bg-white/2 border border-white/6">
                       <div className="text-lg font-bold text-white font-mono">{'< 3'} sec</div>
                       <div className="text-[11px] text-slate-400">Response Latency</div>
                     </div>
-                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <div className="p-3 rounded-xl bg-white/2 border border-white/6">
                       <div className="text-lg font-bold text-cyan-400 font-mono">70%+</div>
                       <div className="text-[11px] text-slate-400">Time Saved</div>
                     </div>
-                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <div className="p-3 rounded-xl bg-white/2 border border-white/6">
                       <div className="text-lg font-bold text-sky-300 font-mono">24/7/365</div>
                       <div className="text-[11px] text-slate-400">Active Direct Funnel</div>
                     </div>
-                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <div className="p-3 rounded-xl bg-white/2 border border-white/6">
                       <div className="text-lg font-bold text-indigo-300 font-mono">UZ & RU</div>
                       <div className="text-[11px] text-slate-400">Bilingual Fluency</div>
                     </div>
@@ -384,7 +453,16 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
               return (
                 <div
                   key={service.id}
-                  className="group rounded-2xl bg-white/[0.02] hover:bg-blue-950/20 border border-white/[0.08] hover:border-blue-500/40 p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:shadow-blue-950/40"
+                  onClick={() => handleServicePreview(service)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      handleServicePreview(service);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  className="group cursor-pointer rounded-2xl bg-white/2 hover:bg-blue-950/20 border border-white/8 hover:border-blue-500/40 p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:shadow-blue-950/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/80"
                 >
                   <div className="space-y-4">
                     
@@ -421,7 +499,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
                     </div>
 
                     {/* Deliverable preview (top 2 points) */}
-                    <div className="pt-2 space-y-1.5 border-t border-white/[0.06]">
+                    <div className="pt-2 space-y-1.5 border-t border-white/6">
                       {service.deliverables[language].slice(0, 2).map((deliv, i) => (
                         <div key={i} className="flex items-start gap-2 text-xs text-slate-300">
                           <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
@@ -435,7 +513,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
                       {meta.tech.slice(0, 3).map((tech, i) => (
                         <span
                           key={i}
-                          className="text-[10px] px-2 py-0.5 rounded bg-white/[0.04] text-slate-400 font-mono border border-white/[0.04]"
+                          className="text-[10px] px-2 py-0.5 rounded bg-white/4 text-slate-400 font-mono border border-white/4"
                         >
                           {tech}
                         </span>
@@ -445,9 +523,9 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
                   </div>
 
                   {/* Card Bottom CTA Actions */}
-                  <div className="pt-5 mt-6 border-t border-white/[0.07] flex items-center justify-between gap-3">
+                  <div className="pt-5 mt-6 border-t border-white/7 flex items-center justify-between gap-3">
                     <button
-                      onClick={() => setSelectedService(service)}
+                      onClick={() => handleServicePreview(service)}
                       className="text-xs font-bold text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1.5 transition-colors group/link"
                     >
                       <span>{t.services.viewDetails}</span>
@@ -455,8 +533,8 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
                     </button>
 
                     <button
-                      onClick={() => onNavigate('contact')}
-                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-blue-500/20 text-slate-300 hover:text-white border border-white/[0.08] hover:border-blue-500/40 transition-all"
+                      onClick={() => handleServiceQuote(service)}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/4 hover:bg-blue-500/20 text-slate-300 hover:text-white border border-white/8 hover:border-blue-500/40 transition-all"
                     >
                       {language === 'ru' ? 'Заказать' : language === 'en' ? 'Quote' : 'Ariza'}
                     </button>
@@ -467,8 +545,102 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
             })}
         </div>
 
+        {/* Pricing Tiers Section */}
+        <div className="mt-14 sm:mt-18">
+          <div className="max-w-3xl mx-auto text-center space-y-4 mb-10 sm:mb-14">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-[1.15]">
+              {t.services.pricingTitle}
+            </h2>
+
+            <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal max-w-xl mx-auto">
+              {t.services.pricingSubtitle}
+            </p>
+          </div>
+
+          {/* Pricing Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+            {websitePricingTiers.map((tier, index) => (
+              <div
+                key={tier.name}
+                className={`relative flex h-full flex-col rounded-3xl p-6 sm:p-8 bg-linear-to-br from-[#0B1528] via-[#08101E] to-[#040813] border-2 transition-all duration-300 ${
+                  tier.popular ? 'border-blue-500/40 shadow-[0_18px_40px_rgba(59,130,246,0.16)]' : 'border-slate-800/80 shadow-[0_18px_40px_rgba(15,23,42,0.12)]'
+                }`}
+              >
+                <div className="absolute top-4 right-4">
+                  <span
+                    className={`text-[10px] font-semibold uppercase tracking-[0.18em] rounded-full py-1.5 px-3 ${
+                      tier.popular
+                        ? 'bg-blue-950 text-blue-200 border border-blue-700/70'
+                        : 'bg-white/5 text-slate-300 border border-slate-700/80'
+                    }`}
+                  >
+                    {tier.badge}
+                  </span>
+                </div>
+
+                <div className="flex flex-col flex-1 pt-8">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
+                    <div className="sm:min-w-30">
+                      <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-cyan-400 block mb-2">
+                        {t.services.pricingPlan}
+                      </span>
+                      <h3 className="text-[1.5rem] sm:text-[1.75rem] font-semibold text-white leading-tight tracking-[-0.03em]">
+                        {tier.name}
+                      </h3>
+                    </div>
+
+                    <div className="flex items-end gap-2">
+                      <span className="text-3xl sm:text-4xl font-black tracking-[-0.06em] text-white leading-none">
+                        {tier.price}
+                      </span>
+                      <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-400 pb-1.5">
+                        {t.services.perMonth}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-sm sm:text-base text-slate-300 leading-relaxed mb-6">
+                    {tier.description}
+                  </p>
+
+                  <div className="space-y-3 mb-6">
+                    {tier.features.map((feat, i) => (
+                      <div key={i} className="flex items-center gap-3 text-xs sm:text-sm text-slate-200 leading-relaxed">
+                        {feat.value ? (
+                          <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                        ) : (
+                          <div className="w-4 h-4 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                            <X className="w-2.5 h-2.5 text-slate-400" />
+                          </div>
+                        )}
+                        <span>{feat.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-auto flex flex-col sm:flex-row gap-4">
+                  <button
+                    onClick={() => onNavigate('contact')}
+                    className="flex-1 px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold text-white bg-linear-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-xl shadow-blue-600/30 transition-all"
+                  >
+                    {t.services.getStarted}
+                  </button>
+
+                  <button
+                    onClick={() => handleServiceQuote(flagshipService)}
+                    className="flex-1 px-4 py-2.5 rounded-full text-xs sm:text-sm font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/8 border border-white/10 transition-all"
+                  >
+                    {t.services.requestConsultation}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Bottom Agency Guarantee & Consultation Prompt */}
-        <div className="mt-14 sm:mt-18 p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-[#081122] via-[#0B172E] to-[#070D18] border border-blue-500/20 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="mt-14 sm:mt-18 p-8 sm:p-10 rounded-3xl bg-linear-to-r from-[#081122] via-[#0B172E] to-[#070D18] border border-blue-500/20 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-center md:text-left">
             <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
               {language === 'ru'
@@ -488,7 +660,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
 
           <button
             onClick={() => onNavigate('contact')}
-            className="flex items-center gap-2 px-7 py-3 rounded-full text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-xl shadow-blue-600/30 whitespace-nowrap shrink-0 transition-all hover:scale-105"
+            className="flex items-center gap-2 px-7 py-3 rounded-full text-xs sm:text-sm font-bold text-white bg-linear-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-xl shadow-blue-600/30 whitespace-nowrap shrink-0 transition-all hover:scale-105"
           >
             <span>{t.services.requestConsultation}</span>
             <ArrowRight className="w-4 h-4" />
@@ -514,7 +686,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
               </div>
               <button
                 onClick={() => setSelectedService(null)}
-                className="p-2 rounded-xl text-slate-400 hover:text-white bg-white/[0.04] border border-white/[0.08] hover:border-blue-500/40 transition-colors"
+                className="p-2 rounded-xl text-slate-400 hover:text-white bg-white/4 border border-white/8 hover:border-blue-500/40 transition-colors"
                 aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
@@ -550,7 +722,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
                 {selectedService.benefits[language].map((ben, i) => (
                   <li
                     key={i}
-                    className="flex items-center gap-2 text-xs sm:text-sm text-slate-200 bg-white/[0.03] p-3 rounded-xl border border-white/[0.07]"
+                    className="flex items-center gap-2 text-xs sm:text-sm text-slate-200 bg-white/3 p-3 rounded-xl border border-white/7"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                     <span>{ben}</span>
@@ -560,7 +732,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="pt-5 border-t border-white/[0.08] flex items-center justify-between gap-4">
+            <div className="pt-5 border-t border-white/8 flex items-center justify-between gap-4">
               <button
                 onClick={() => setSelectedService(null)}
                 className="px-4 py-2 text-xs text-slate-400 hover:text-white transition-colors"
@@ -573,7 +745,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
                   setSelectedService(null);
                   onNavigate('contact');
                 }}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-xl shadow-blue-600/30 transition-all"
+                className="flex items-center gap-2 px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold text-white bg-linear-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-xl shadow-blue-600/30 transition-all"
               >
                 <span>{t.services.requestConsultation}</span>
                 <ArrowRight className="w-4 h-4" />

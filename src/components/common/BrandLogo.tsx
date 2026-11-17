@@ -41,7 +41,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           viewBox="0 0 48 48"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full relative z-10"
+          className="brand-mark-svg w-full h-full relative z-10"
         >
           {/* Main Solid Bold Z with razor-sharp edge */}
           <path

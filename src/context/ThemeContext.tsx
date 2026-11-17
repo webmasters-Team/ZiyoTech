@@ -21,13 +21,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      root.classList.remove('light');
-    } else {
-      root.classList.add('light');
-      root.classList.remove('dark');
-    }
+    const isDark = theme === 'dark';
+
+    root.classList.toggle('dark', isDark);
+    root.classList.toggle('light', !isDark);
+    root.style.colorScheme = isDark ? 'dark' : 'light';
+    document.body.style.background = isDark ? '#080C14' : '#F8FAFC';
+    document.body.style.color = isDark ? '#E2E8F0' : '#1E293B';
     localStorage.setItem('ziyotech_theme', theme);
   }, [theme]);
 

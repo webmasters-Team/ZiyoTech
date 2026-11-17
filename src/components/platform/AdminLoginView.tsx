@@ -11,6 +11,21 @@ interface AdminLoginViewProps {
 
 const DEMO_ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'admin@ziyotech.com';
 const DEMO_ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || '';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
+const persistAdminSession = (user: { id?: string; email: string; role?: string }, token?: string) => {
+  const safeUser = user || { email: DEMO_ADMIN_EMAIL, role: 'admin' };
+
+  localStorage.setItem('ziotech-admin-auth', 'demo');
+  localStorage.setItem('ziotech-admin-user', JSON.stringify(safeUser));
+
+  if (token) {
+    localStorage.setItem('ziotech-admin-token', token);
+    localStorage.setItem('ziyo-sales-admin-token', token);
+  }
+
+  localStorage.setItem('ziyo-sales-admin', JSON.stringify(safeUser));
+};
 
 export const AdminLoginView: React.FC<AdminLoginViewProps> = ({ onBackToSite, onLogin }) => {
   const [email, setEmail] = useState(DEMO_ADMIN_EMAIL);
@@ -28,23 +43,37 @@ export const AdminLoginView: React.FC<AdminLoginViewProps> = ({ onBackToSite, on
       return;
     }
 
-    const auth = firebaseApp ? getAuth(firebaseApp) : null;
-
-    if (email.trim().toLowerCase() === DEMO_ADMIN_EMAIL && password === DEMO_ADMIN_PASSWORD) {
-      localStorage.setItem('ziotech-admin-auth', 'demo');
-      onLogin();
-      return;
-    }
-
-    if (!auth) {
-      setError('Demo access is available using the configured admin account.');
-      return;
-    }
-
     try {
       setIsSubmitting(true);
+
+      const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && data?.token && data?.user) {
+        persistAdminSession(data.user, data.token);
+        onLogin();
+        return;
+      }
+
+      if (email.trim().toLowerCase() === DEMO_ADMIN_EMAIL && password === DEMO_ADMIN_PASSWORD) {
+        persistAdminSession({ email: email.trim(), role: 'admin' }, 'demo-session');
+        onLogin();
+        return;
+      }
+
+      const auth = firebaseApp ? getAuth(firebaseApp) : null;
+      if (!auth) {
+        setError('Unable to validate admin credentials. Check your environment and backend configuration.');
+        return;
+      }
+
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      localStorage.setItem('ziotech-admin-auth', 'firebase');
+      persistAdminSession({ email: email.trim(), role: 'admin' }, 'firebase-session');
       onLogin();
     } catch (loginError) {
       setError('Invalid email or password. Use a valid admin account.');

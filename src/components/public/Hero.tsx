@@ -21,8 +21,41 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { theme, setTheme } = useTheme();
+
+  const heroCopy = {
+    badge:
+      language === 'ru'
+        ? 'AI Growth Partner для бизнеса'
+        : language === 'en'
+        ? 'AI Growth Partner for Modern Business'
+        : 'Zamonaviy biznes uchun AI o\'sish hamkori',
+    headline1:
+      language === 'ru'
+        ? 'Преобразуйте Продажи.'
+        : language === 'en'
+        ? 'Turn More Leads.'
+        : 'Savdoni oshiring',
+    headline2:
+      language === 'ru'
+        ? 'Автоматизируйте Умнее.'
+        : language === 'en'
+        ? 'Automate Smarter.'
+        : 'Aqilli Avtomatlashtirish',
+    subtitle:
+      language === 'ru'
+        ? 'ZiyoTech создает AI-агентов, сайты и автоматизированные системы, которые превращают входящие запросы в реальный рост продаж и стабильную работу бизнеса.'
+        : language === 'en'
+        ? 'ZiyoTech builds AI-powered websites, sales agents, and automation systems that turn customer conversations into measurable revenue and smoother operations.'
+        : 'ZiyoTech AI agentlar, veb-saytlar va biznes avtomatlashtirish tizimlarini yaratadi. Ular qabul qilingan murojaatlarni real savdoga va samarali ishlashga aylantiradi.',
+    featuredTag:
+      language === 'ru'
+        ? 'AI & Automation Systems'
+        : language === 'en'
+        ? 'AI & Automation Systems'
+        : 'AI & Avtomatlashtirish Tizimlari',
+  };
 
   const quickServices = [
     { id: 'web-dev', name: t.hero.quickServices.web, icon: Zap, color: 'text-blue-500' },
@@ -34,240 +67,179 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   ];
 
   return (
-    <section className="relative w-full overflow-hidden pt-4 sm:pt-8 pb-12 sm:pb-20">
-      
-      {/* Dynamic Ambient background glows in Sapphire & Cyan */}
-      <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-96 bg-gradient-to-b blur-3xl pointer-events-none -z-10 ${
-        theme === 'dark' ? 'from-blue-500/10 via-cyan-600/10 to-transparent' : 'from-blue-200/40 via-cyan-100/30 to-transparent'
-      }`} />
-      <div className={`absolute top-24 right-0 w-72 sm:w-96 h-72 sm:h-96 rounded-full blur-[100px] pointer-events-none -z-10 ${
-        theme === 'dark' ? 'bg-blue-600/15' : 'bg-blue-300/20'
-      }`} />
-      <div className={`absolute top-40 left-0 w-72 sm:w-96 h-72 sm:h-96 rounded-full blur-[100px] pointer-events-none -z-10 ${
-        theme === 'dark' ? 'bg-cyan-600/10' : 'bg-cyan-300/20'
-      }`} />
+    <section className="relative w-full overflow-hidden pb-12 pt-4 sm:pb-20 sm:pt-6">
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-96 w-full max-w-6xl -translate-x-1/2 bg-gradient-to-b from-blue-500/8 via-cyan-500/6 to-transparent blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-24 -z-10 h-72 w-72 rounded-full bg-blue-500/10 blur-[100px] sm:h-96 sm:w-96" />
+      <div className="pointer-events-none absolute left-0 top-40 -z-10 h-72 w-72 rounded-full bg-cyan-500/8 blur-[100px] sm:h-96 sm:w-96" />
 
-      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
-        
-        {/* Top 2-Column Split: Hero Headline & 3D Robot Explaining on Screen */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
-          
-          {/* Left Column: Brand Positioning & CTAs */}
-          <div className="lg:col-span-5 space-y-5 sm:space-y-6 text-left">
-            
-            {/* Pill Kicker */}
-            <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border backdrop-blur-md shadow-sm ${
+      <div className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-6">
+          <div className="space-y-5 text-left lg:col-span-5 sm:space-y-6">
+            <div className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 shadow-sm backdrop-blur-md ${
               theme === 'dark'
-                ? 'bg-blue-950/40 border-blue-500/30 text-blue-100'
-                : 'bg-blue-50 border-blue-200 text-blue-900'
+                ? 'border-slate-700 bg-slate-900/80 text-slate-200'
+                : 'border-slate-200 bg-white/90 text-slate-700'
             }`}>
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="text-xs sm:text-[13px] font-semibold">
-                {t.hero.badge}
-              </span>
+              <Sparkles className="h-3.5 w-3.5 text-blue-300" />
+              <span className="text-xs font-semibold sm:text-[13px]">{heroCopy.badge}</span>
             </div>
 
-            {/* Main Headline */}
-            <h1 className={`text-3xl sm:text-5xl xl:text-[58px] font-extrabold tracking-tight leading-[1.1] break-words ${
+            <h1 className={`text-3xl font-extrabold leading-[1.08] tracking-[-0.05em] sm:text-5xl xl:text-[58px] ${
               theme === 'dark' ? 'text-white' : 'text-slate-900'
             }`}>
-              {t.hero.headlinePart1} <br />
-              <span className="bg-gradient-to-r from-blue-500 via-cyan-400 to-sky-300 bg-clip-text text-transparent">
-                {t.hero.headlinePart2.split(' ')[0]}
-              </span>{' '}
-              {t.hero.headlinePart2.split(' ').slice(1).join(' ')}
+              {heroCopy.headline1} <br />
+              <span className="bg-gradient-to-r from-slate-100 via-blue-300 to-cyan-300 bg-clip-text text-transparent">
+                {heroCopy.headline2}
+              </span>
             </h1>
 
-            {/* Subtitle */}
-            <p className={`text-sm sm:text-base lg:text-lg leading-relaxed font-normal max-w-lg ${
+            <p className={`max-w-lg text-sm font-normal leading-relaxed sm:text-base lg:text-lg ${
               theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
             }`}>
-              {t.hero.subtitle}
+              {heroCopy.subtitle}
             </p>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+            <div className="flex flex-col items-stretch gap-3 pt-2 sm:flex-row sm:items-center">
               <button
                 onClick={() => onNavigate('contact')}
-                className="flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 rounded-full shadow-xl shadow-blue-600/30 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                className="flex items-center justify-center gap-2.5 rounded-full bg-linear-to-r from-slate-100 via-white to-slate-200 px-6 py-3.5 text-xs font-bold text-slate-900 shadow-[0_18px_40px_rgba(148,163,184,0.25)] transition-all hover:scale-[1.01] sm:px-7 sm:text-sm"
               >
                 <span>{t.hero.ctaWorkTogether}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="h-4 w-4" />
               </button>
 
               <button
                 onClick={() => onNavigate('services')}
-                className={`flex items-center justify-center gap-2 px-5 sm:px-6 py-3.5 text-xs sm:text-sm font-semibold rounded-full transition-all border ${
+                className={`flex items-center justify-center gap-2 rounded-full border px-5 py-3.5 text-xs font-semibold transition-all sm:px-6 sm:text-sm ${
                   theme === 'dark'
-                    ? 'text-slate-200 bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.1] hover:border-blue-500/30'
-                    : 'text-slate-700 bg-white hover:bg-slate-100 border-slate-300 shadow-sm'
+                    ? 'border-slate-700 bg-slate-900/60 text-slate-200 hover:border-slate-600 hover:bg-slate-800/80'
+                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
-                <Play className="w-3 h-3 fill-current text-cyan-500" />
+                <Play className="h-3 w-3 fill-current text-blue-400" />
                 <span>{t.hero.ctaExploreServices}</span>
               </button>
             </div>
 
-            {/* Trust Highlights */}
-            <div className={`pt-2 flex flex-wrap items-center gap-y-2 gap-x-5 text-xs ${
+            <div className={`flex flex-wrap items-center gap-x-5 gap-y-2 pt-2 text-xs ${
               theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
             }`}>
               <span className="flex items-center gap-1.5 font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-blue-400" />
                 <span>Official Meta Partner</span>
               </span>
               <span className="flex items-center gap-1.5 font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-cyan-400" />
                 <span>Telegram Bot API</span>
               </span>
               <span className="flex items-center gap-1.5 font-medium">
-                <ShieldCheck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-slate-300" />
                 <span>Zero Hallucination</span>
               </span>
             </div>
           </div>
 
-          {/* Right Column: 3D Robot & Screen with Interactive Light & Dark Feature */}
-          <div className="lg:col-span-7 relative w-full flex flex-col items-center justify-center select-none">
-            
-            {/* Ambient floor light */}
-            <div className={`absolute inset-x-8 bottom-2 h-20 rounded-full blur-2xl animate-pulse-ring pointer-events-none ${
-              theme === 'dark'
-                ? 'bg-gradient-to-r from-blue-600/25 via-cyan-600/30 to-indigo-500/20'
-                : 'bg-gradient-to-r from-blue-300/30 via-cyan-300/30 to-indigo-200/30'
+          <div className="relative flex w-full select-none items-center justify-center lg:col-span-7">
+            <div className={`absolute inset-x-8 bottom-2 h-20 rounded-full blur-2xl ${
+              theme === 'dark' ? 'bg-gradient-to-r from-blue-600/20 via-cyan-600/25 to-indigo-500/15' : 'bg-gradient-to-r from-blue-300/25 via-cyan-300/25 to-indigo-300/20'
             }`} />
 
-            {/* Main Visual Container: 3D Robot Image (Seamless blended presentation with no harsh box) */}
-            <div className={`relative w-full max-w-2xl aspect-[16/9] rounded-3xl overflow-hidden transition-all duration-500 ${
-              theme === 'dark'
-                ? 'shadow-2xl shadow-blue-950/40'
-                : 'shadow-2xl shadow-blue-200/50 border border-slate-200'
+            <div className={`relative aspect-[16/9] w-full max-w-2xl overflow-hidden rounded-[28px] transition-all duration-500 ${
+              theme === 'dark' ? 'bg-[#080C14] shadow-[0_35px_90px_rgba(15,23,42,0.5)]' : 'bg-white shadow-[0_30px_90px_rgba(148,163,184,0.4)]'
             }`}>
-              {/* Seamless Background Video: Dark or Light Mode */}
               <video
-                className="w-full h-full object-cover transition-opacity duration-500 animate-float-subtle"
+                className="h-full w-full object-cover opacity-95 transition-opacity duration-500"
                 autoPlay
                 loop
                 muted
                 playsInline
                 preload="auto"
               >
-                <source
-                  src="/assets/1.mp4"
-                  type="video/mp4"
-                />
+                <source src="/assets/1.mp4" type="video/mp4" />
               </video>
-
             </div>
-
           </div>
-
         </div>
 
-        {/* 6 Quick Capability Cards Bar */}
-        <div className={`mt-10 sm:mt-14 pt-6 border-t ${
-          theme === 'dark' ? 'border-white/[0.08]' : 'border-slate-200'
-        }`}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+        <div className={`mt-10 border-t pt-6 sm:mt-14 ${theme === 'dark' ? 'border-white/[0.08]' : 'border-slate-200'}`}>
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
             {quickServices.map((qs) => {
               const Icon = qs.icon;
               return (
                 <button
                   key={qs.id}
                   onClick={() => onNavigate('service-detail', qs.id)}
-                  className={`group p-3.5 sm:p-4 rounded-2xl border transition-all text-left flex flex-col justify-between min-h-[96px] sm:min-h-[104px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                  className={`group flex min-h-[96px] flex-col justify-between rounded-2xl border p-3.5 text-left transition-all sm:min-h-[104px] sm:p-4 ${
                     theme === 'dark'
-                      ? 'bg-white/[0.02] hover:bg-blue-950/30 border-white/[0.07] hover:border-blue-500/40 text-slate-200 hover:text-white'
-                      : 'bg-white hover:bg-blue-50/60 border-slate-200 hover:border-blue-400 text-slate-700 hover:text-blue-700 shadow-sm'
+                      ? 'border-slate-800 bg-slate-950/60 text-slate-200 hover:border-slate-700 hover:bg-slate-900'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <div className={`p-2 rounded-xl transition-transform group-hover:scale-110 ${
-                      theme === 'dark' ? 'bg-white/[0.05] text-slate-200' : 'bg-slate-100 text-slate-700'
-                    }`}>
-                      <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${qs.color}`} />
+                  <div className="flex w-full items-center justify-between">
+                    <div className={`rounded-xl p-2 ${theme === 'dark' ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-700'}`}>
+                      <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${qs.color}`} />
                     </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all opacity-0 group-hover:opacity-100" />
+                    <ArrowRight className="h-3.5 w-3.5 text-slate-400 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </div>
-                  <span className="text-xs sm:text-[13px] font-semibold mt-2 leading-snug">
-                    {qs.name}
-                  </span>
+                  <span className="mt-2 text-xs font-semibold leading-snug sm:text-[13px]">{qs.name}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Featured Product Teaser: ZiyoTech AI Sales Agent */}
-        <div className={`mt-8 sm:mt-12 rounded-3xl border p-5 sm:p-8 lg:p-10 relative overflow-hidden shadow-2xl transition-all ${
+        <div className={`relative mt-8 overflow-hidden rounded-[28px] border p-5 shadow-2xl sm:mt-12 sm:p-8 lg:p-10 ${
           theme === 'dark'
-            ? 'bg-gradient-to-r from-[#091222] via-[#0D1B30] to-[#070D18] border-blue-500/25'
-            : 'bg-gradient-to-r from-blue-50/80 via-white to-indigo-50/80 border-blue-200'
+            ? 'border-slate-800 bg-gradient-to-r from-[#08111d] via-[#0b1525] to-[#09131f]'
+            : 'border-slate-200 bg-gradient-to-r from-slate-50 via-white to-blue-50'
         }`}>
-          <div className="absolute top-0 right-0 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="pointer-events-none absolute right-0 top-0 h-72 w-72 rounded-full bg-blue-500/10 blur-[100px]" />
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
-            
-            <div className="lg:col-span-6 space-y-4">
+          <div className="relative grid items-center gap-6 lg:grid-cols-12 lg:gap-8">
+            <div className="space-y-4 lg:col-span-6">
               <div className="flex items-center gap-2">
-                <span className="w-5 h-0.5 bg-blue-500 rounded-full" />
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-blue-500">
-                  {t.hero.featuredProductTag}
+                <span className="h-0.5 w-5 rounded-full bg-blue-400" />
+                <span className="text-[11px] font-mono font-bold uppercase tracking-[0.2em] text-blue-300">
+                  {heroCopy.featuredTag}
                 </span>
               </div>
 
-              <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${
+              <h2 className={`text-2xl font-extrabold tracking-[-0.04em] sm:text-3xl lg:text-4xl ${
                 theme === 'dark' ? 'text-white' : 'text-slate-900'
               }`}>
                 {t.hero.featuredProductTitle}
               </h2>
 
-              <p className={`text-sm sm:text-base leading-relaxed max-w-xl ${
+              <p className={`max-w-xl text-sm leading-relaxed sm:text-base ${
                 theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
               }`}>
                 {t.hero.featuredProductDesc}
               </p>
-
-              <div className="pt-2 flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => onNavigate('product-sales-agent')}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 border border-blue-400 shadow-md transition-all group"
-                >
-                  <span>{t.hero.featuredProductCta}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-cyan-200 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-
-                <button
-                  onClick={() => onNavigate('contact')}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-colors ${
-                    theme === 'dark' ? 'text-slate-300 hover:text-cyan-300' : 'text-slate-700 hover:text-blue-600'
-                  }`}
-                >
-                  <span>{t.services.requestConsultation}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </div>
 
-            {/* Right side phone mockup: Uses high-res Sapphire Sales Phone asset */}
-            <div className="lg:col-span-6 flex justify-center">
-              <div className={`relative w-full max-w-md rounded-2xl overflow-hidden border shadow-2xl aspect-[16/9] ${
-                theme === 'dark' ? 'border-blue-500/20 bg-black/60' : 'border-slate-300 bg-white'
-              }`}>
-                <img
-                  src="/assets/brand/sales_phone_sapphire.jpg"
-                  alt="ZiyoTech AI Sales Agent Conversation"
-                  className="w-full h-full object-cover"
-                />
-
-                {/* Animated shimmer sweep over the phone screen */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/[0.08] to-transparent -translate-x-full hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
+            <div className="lg:col-span-6">
+              <div className={`rounded-[24px] border p-5 ${theme === 'dark' ? 'border-slate-800 bg-slate-950/70' : 'border-slate-200 bg-white/90'}`}>
+                <div className="mb-3 grid grid-cols-3 gap-3 text-center">
+                  <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-3">
+                    <div className="text-lg font-black text-white">24/7</div>
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-slate-400">Support</div>
+                  </div>
+                  <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-3">
+                    <div className="text-lg font-black text-white">3s</div>
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-slate-400">Reply</div>
+                  </div>
+                  <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-3">
+                    <div className="text-lg font-black text-white">+40%</div>
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-slate-400">Leads</div>
+                  </div>
+                </div>
+                <div className={`rounded-2xl border p-4 text-sm ${theme === 'dark' ? 'border-slate-800 bg-slate-900 text-slate-300' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
+                  {t.hero.featuredProductDesc}
+                </div>
               </div>
             </div>
-
           </div>
         </div>
-
       </div>
     </section>
   );

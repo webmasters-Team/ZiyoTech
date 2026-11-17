@@ -1,154 +1,292 @@
 import React from 'react';
-import { useLanguage } from '../../context/LanguageContext';
-import { Target, Eye, Shield, Zap, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import {
+  ArrowRight,
+  BadgeCheck,
+  BrainCircuit,
+  Building2,
+  CheckCircle2,
+  Compass,
+  Factory,
+  Globe2,
+  MapPinned,
+  Palette,
+  Rocket,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Users,
+} from 'lucide-react';
 
 interface AboutSectionProps {
   onNavigate: (page: string) => void;
 }
 
 export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
-  const { language, t } = useLanguage();
+  const stats = [
+    { value: '2021', label: 'Founded', icon: Building2 },
+    { value: 'Japan + Korea', label: 'International projects', icon: Globe2 },
+    { value: '6 months', label: 'Industry research', icon: BrainCircuit },
+    { value: '100%', label: 'End-to-end ownership', icon: Rocket },
+  ];
 
-  const values = [
+  const journey = [
     {
-      title: language === 'ru' ? 'Инновации и Прагматизм' : language === 'en' ? 'Innovation with Pragmatism' : 'Innovatsiya va Amaliylik',
-      desc: language === 'ru'
-        ? 'Мы внедряем передовые ИИ-модели только там, где они приносят осязаемую ценность бизнесу, исключая технологический хайп.'
-        : language === 'en'
-        ? 'We deploy bleeding-edge AI models only where they deliver measurable bottom-line leverage, avoiding superficial hype.'
-        : "Sun'iy intellekt texnologiyalarini faqat biznesingizga real foyda va daromad keltiradigan nuqtalarda joriy qilamiz.",
-      icon: Zap,
+      year: '2021',
+      title: 'ZiyoTech Founded',
+      text: 'The beginning of our journey in software development and international technology collaboration.',
+      icon: Building2,
     },
     {
-      title: language === 'ru' ? 'Абсолютная Точность Данных' : language === 'en' ? 'Absolute Data Integrity' : 'Ma\'lumotlar Aniqligi',
-      desc: language === 'ru'
-        ? 'Никаких галлюцинаций цен или фальшивых остатков. Наш ИИ оперирует исключительно верифицированной структурированной базой.'
-        : language === 'en'
-        ? 'Zero hallucination tolerance. Our automated agents compute only against verified database schemas and verified policy documents.'
-        : "Hech qanday yolg'on narxlar yoki xato ma'lumotlar yo'q. AI agent faqat tasdiqlangan ombor va ma'lumotlar bazasi asosida ishlaydi.",
-      icon: Shield,
+      year: 'Tokyo, Japan',
+      title: 'SB Collaboration',
+      text: 'Our first international collaboration established the foundation for cross-border development.',
+      icon: Globe2,
     },
     {
-      title: language === 'ru' ? 'Один Партнер — Полный Цикл' : language === 'en' ? 'Unified Full-Cycle Stewardship' : 'Yagona Mas\'ul Hamkor',
-      desc: language === 'ru'
-        ? 'От создания фирменного стиля и видеоконтента до веб-платформы и автоматизации продаж — единая слаженная инженерная команда.'
-        : language === 'en'
-        ? 'From brand identity and commercial cinematography to web platforms and AI automation — unified execution without vendor friction.'
-        : "Brending, foto/video kontent, veb-platforma va AI savdo tizimigacha — barchasi yagona professional jamoa qo'lida.",
+      year: 'South Korea',
+      title: 'International Expansion',
+      text: 'We expanded our expertise through collaborations with Korean companies and custom engineering projects.',
+      icon: MapPinned,
+    },
+    {
+      year: 'Seoul, Korea',
+      title: 'Dentalverse',
+      text: 'We delivered a complete software platform after six months of deep dentistry research and product engineering.',
       icon: Target,
     },
   ];
 
+  const pillars = [
+    {
+      title: 'International Experience',
+      desc: 'Experience collaborating with companies in Japan and South Korea.',
+      icon: Globe2,
+    },
+    {
+      title: 'Deep Industry Understanding',
+      desc: 'We study the industry before we design the system.',
+      icon: BrainCircuit,
+    },
+    {
+      title: 'Full Ownership',
+      desc: 'From research and design to development, architecture, and deployment.',
+      icon: ShieldCheck,
+    },
+    {
+      title: 'Custom Solutions',
+      desc: 'Every platform is shaped around the client’s real business needs.',
+      icon: Compass,
+    },
+  ];
+
   return (
-    <section id="about" className="py-14 sm:py-20 lg:py-28 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/40 border border-blue-800/60 text-xs font-mono text-blue-300">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Company Identity & Ethos</span>
+    <section id="about" className="relative overflow-hidden py-14 sm:py-20 lg:py-28">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(59,130,246,0.06),transparent_30%)]" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto mb-12 max-w-4xl text-center">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-slate-300">
+            <Sparkles className="h-3.5 w-3.5 text-blue-300" />
+            About ZiyoTech
           </div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            {language === 'ru' ? 'О Компании ZiyoTech' : language === 'en' ? 'About ZiyoTech' : 'ZiyoTech Kompaniyasi Haqida'}
+
+          <h2 className="text-3xl font-black tracking-[-0.05em] text-white sm:text-5xl lg:text-[4rem]">
+            Engineering technology without borders.
           </h2>
-          <p className="text-slate-300 text-base sm:text-lg leading-relaxed">
-            {language === 'ru'
-              ? 'ZiyoTech — это цифровое агентство полного цикла и разработчик передовых систем автоматизации бизнеса на базе искусственного интеллекта.'
-              : language === 'en'
-              ? 'ZiyoTech is a full-service digital agency and AI automation engineering firm built to power next-generation business growth.'
-              : "ZiyoTech — to'liq xizmatli raqamli agentlik va biznesni sun'iy intellekt orqali avtomatlashtiruvchi innovatsion texnologik kompaniya."}
+          <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-slate-300 sm:text-lg">
+            Founded in 2021, ZiyoTech is a software development and AI solutions company delivering international technology projects across Japan and South Korea.
+            <span className="mt-2 block text-slate-400">
+              We combine engineering discipline, industry research, and AI-enabled automation to build resilient digital systems for modern businesses.
+            </span>
           </p>
         </div>
 
-        {/* Mission & Vision Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          {/* Mission */}
-          <div className="rounded-2xl bg-gradient-to-br from-blue-950/40 via-slate-900 to-[#080C14] border border-blue-900/60 p-8 space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-600/20 text-cyan-400 flex items-center justify-center border border-blue-500/30">
-              <Target className="w-6 h-6" />
-            </div>
-            <h3 className="text-2xl font-bold text-white">
-              {language === 'ru' ? 'Наша Миссия' : language === 'en' ? 'Our Mission' : 'Bizning Missiyamiz'}
-            </h3>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              "{language === 'ru'
-                ? 'Помогать бизнесу внедрять современные технологии, оптимизировать операционную деятельность и достигать устойчивого роста за счет интеллектуальных цифровых решений.'
-                : language === 'en'
-                ? 'To help businesses embrace modern technology, improve their operations, and achieve sustainable growth through intelligent digital solutions.'
-                : "Bizneslarga zamonaviy texnologiyalarni joriy qilish, operatsion jarayonlarni soddalashtirish va aqlli raqamli yechimlar orqali barqaror o'sishga erishishda yordam berish."}"
-            </p>
-          </div>
-
-          {/* Vision */}
-          <div className="rounded-2xl bg-gradient-to-br from-indigo-950/40 via-slate-900 to-[#080C14] border border-indigo-900/60 p-8 space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
-              <Eye className="w-6 h-6" />
-            </div>
-            <h3 className="text-2xl font-bold text-white">
-              {language === 'ru' ? 'Наше Видение' : language === 'en' ? 'Our Vision' : 'Bizning Qarashimiz'}
-            </h3>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              "{language === 'ru'
-                ? 'Стать надежным технологическим и ИИ-партнером для компаний в Узбекистане и на международных рынках, формируя новый стандарт цифрового превосходства.'
-                : language === 'en'
-                ? 'To become a trusted technology and AI partner for businesses in Uzbekistan and international markets.'
-                : "O'zbekiston va xalqaro bozorlardagi bizneslar uchun eng ishonchli texnologik va AI hamkoriga aylanish."}"
-            </p>
-          </div>
-        </div>
-
-        {/* Why Choose Us 4-Box */}
-        <div className="rounded-3xl bg-slate-900/60 border border-slate-800 p-8 sm:p-12 mb-16">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <h3 className="text-2xl sm:text-3xl font-bold text-white">
-              {t.whyUs.title}
-            </h3>
-            <p className="text-slate-300 text-sm sm:text-base mt-2">
-              {t.whyUs.subtitle}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-5 rounded-xl bg-slate-950/60 border border-slate-800">
-              <div className="text-cyan-400 font-bold mb-2">01</div>
-              <h4 className="text-base font-bold text-white mb-2">{t.whyUs.point1Title}</h4>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{t.whyUs.point1Desc}</p>
-            </div>
-            <div className="p-5 rounded-xl bg-slate-950/60 border border-slate-800">
-              <div className="text-cyan-400 font-bold mb-2">02</div>
-              <h4 className="text-base font-bold text-white mb-2">{t.whyUs.point2Title}</h4>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{t.whyUs.point2Desc}</p>
-            </div>
-            <div className="p-5 rounded-xl bg-slate-950/60 border border-slate-800">
-              <div className="text-cyan-400 font-bold mb-2">03</div>
-              <h4 className="text-base font-bold text-white mb-2">{t.whyUs.point3Title}</h4>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{t.whyUs.point3Desc}</p>
-            </div>
-            <div className="p-5 rounded-xl bg-slate-950/60 border border-slate-800">
-              <div className="text-cyan-400 font-bold mb-2">04</div>
-              <h4 className="text-base font-bold text-white mb-2">{t.whyUs.point4Title}</h4>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{t.whyUs.point4Desc}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Values 3-Column */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {values.map((v, i) => {
-            const Icon = v.icon;
-            return (
-              <div key={i} className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800 hover:border-blue-500/30 transition-all">
-                <div className="w-10 h-10 rounded-lg bg-slate-800 text-cyan-400 flex items-center justify-center mb-4">
-                  <Icon className="w-5 h-5" />
-                </div>
-                <h4 className="text-lg font-bold text-white mb-2">{v.title}</h4>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{v.desc}</p>
+        <div className="mb-16 grid grid-cols-1 gap-7 lg:grid-cols-[1.12fr_0.88fr]">
+          <div className="rounded-[30px] border border-slate-800 bg-[#0a1017] p-7 shadow-[0_30px_90px_rgba(2,6,23,0.45)] sm:p-8">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900 text-blue-300">
+                <Globe2 className="h-6 w-6" />
               </div>
-            );
-          })}
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-slate-400">Global presence</div>
+                <h3 className="text-xl font-bold text-white">International project delivery</h3>
+              </div>
+            </div>
+
+            <div className="space-y-5 text-sm leading-relaxed text-slate-300 sm:text-[15px]">
+              <p>
+                Our journey began with our first international collaboration with <span className="font-semibold text-white">SB</span>, based in Tokyo, Japan. That partnership established the foundation for our cross-border product and engineering practice.
+              </p>
+
+              <p>
+                We later expanded into South Korea, working with Korean companies to develop custom software engineering capabilities and industry-specific digital systems.
+              </p>
+
+              <p>
+                Today, our work spans AI-powered sales agents, business automation, digital platforms, and custom software solutions built to solve practical operational challenges at scale.
+              </p>
+            </div>
+
+            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {stats.slice(0, 4).map(({ value, label, icon: Icon }) => (
+                <div key={label} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+                  <Icon className="mb-3 h-5 w-5 text-blue-300" />
+                  <div className="text-lg font-black text-white">{value}</div>
+                  <div className="mt-1 text-[10px] uppercase tracking-[0.17em] text-slate-400">{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="overflow-hidden rounded-[30px] border border-slate-800 bg-slate-900 shadow-[0_20px_60px_rgba(2,6,23,0.5)]">
+              <img
+                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80"
+                alt="Global software team"
+                className="h-64 w-full object-cover grayscale-[0.12]"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div className="text-sm font-bold text-white">Cross-border delivery</div>
+                <div className="mt-1 text-xs text-slate-400">Japan • Korea • global teams</div>
+              </div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-200">
+                  <BadgeCheck className="h-5 w-5" />
+                </div>
+                <div className="text-sm font-bold text-white">Business-ready systems</div>
+                <div className="mt-1 text-xs text-slate-400">Built for real workflows</div>
+              </div>
+            </div>
+          </div>
         </div>
 
+        <div className="mb-16 rounded-[32px] border border-slate-800 bg-[#0b1320] p-6 sm:p-8 lg:p-10">
+          <div className="mb-8 flex items-center justify-between gap-4">
+            <div>
+              <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">Our journey</div>
+              <h3 className="text-2xl font-black text-white sm:text-3xl">A track record of international execution</h3>
+            </div>
+            <div className="hidden h-px flex-1 bg-gradient-to-r from-blue-500/0 via-slate-700 to-blue-500/0 sm:block" />
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {journey.map(({ year, title, text, icon: Icon }) => (
+              <div key={title} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-800 text-blue-300">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400">{year}</div>
+                <h4 className="mb-2 text-lg font-bold text-white">{title}</h4>
+                <p className="text-sm leading-relaxed text-slate-300">{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-16 grid grid-cols-1 gap-8 lg:grid-cols-[0.82fr_1.18fr]">
+          <div className="overflow-hidden rounded-[30px] border border-slate-800 bg-slate-900">
+            <img
+              src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80"
+              alt="Dentalverse platform planning and software engineering"
+              className="h-full min-h-[420px] w-full object-cover grayscale-[0.16]"
+            />
+          </div>
+
+          <div className="rounded-[30px] border border-slate-800 bg-[#0a121d] p-7 sm:p-8">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800 text-slate-200">
+                <Factory className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">Case study</div>
+                <h3 className="text-2xl font-black text-white">Dentalverse</h3>
+              </div>
+            </div>
+
+            <p className="mb-6 text-base leading-relaxed text-slate-300">
+              One of our most significant achievements is Dentalverse, a comprehensive software platform developed for a project in Seoul, South Korea. Before starting development, our team spent six months studying dentistry to understand the industry’s processes, terminology, workflows, and technical requirements.
+            </p>
+
+            <div className="grid gap-3">
+              {[
+                'Industry Research: six months of focused dentistry study and workflow analysis.',
+                'UI/UX Design: building a clear, conversion-oriented user experience.',
+                'Frontend Development: delivering the complete end-user application.',
+                'Backend Engineering: creating scalable system logic and integrations.',
+                'Database Architecture: implementing a secure and resilient data foundation.',
+                'Deployment: preparing and launching the platform end to end.',
+              ].map((item) => (
+                <div key={item} className="flex items-start gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3.5">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-300" />
+                  <span className="text-sm leading-relaxed text-slate-200">{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
+              <div className="flex items-center gap-2 text-slate-300">
+                <Target className="h-4 w-4 text-blue-300" />
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em]">What it means</span>
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-slate-200">
+                Dentalverse demonstrates our ability to transform complex industry requirements into complete digital products. We do not merely code — we study the domain, understand operational realities, and build around real business needs.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-16">
+          <div className="mb-8 text-center">
+            <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">Why businesses choose ZiyoTech</div>
+            <h3 className="text-3xl font-black text-white">Our core strengths</h3>
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {pillars.map(({ title, desc, icon: Icon }) => (
+              <div key={title} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 transition-all hover:-translate-y-0.5 hover:border-slate-700">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800 text-blue-300">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h4 className="mb-2 text-lg font-bold text-white">{title}</h4>
+                <p className="text-sm leading-relaxed text-slate-300">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-[32px] border border-slate-800 bg-linear-to-r from-slate-900 via-[#0a1521] to-[#07121d] p-7 sm:p-10">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+            <div>
+              <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">Our mission</div>
+              <h3 className="text-2xl font-black text-white sm:text-4xl">To turn complex business challenges into clear, scalable technology.</h3>
+              <p className="mt-4 text-base leading-relaxed text-slate-300">
+                Through deep industry understanding, engineering excellence, and thoughtful AI implementation, we help businesses transform ambitious ideas into dependable digital products.
+              </p>
+            </div>
+
+            <div className="rounded-[26px] border border-slate-700 bg-[#0a111b] p-6">
+              <div className="mb-4 flex items-center gap-2 text-slate-200">
+                <Palette className="h-5 w-5 text-blue-300" />
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em]">Vision</span>
+              </div>
+              <p className="text-sm leading-relaxed text-slate-300">
+                To become a trusted international technology partner, empowering businesses worldwide through custom software, artificial intelligence, and intelligent automation.
+              </p>
+              <button
+                onClick={() => onNavigate('contact')}
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-linear-to-r from-slate-100 to-slate-300 px-5 py-3 text-sm font-bold text-slate-900 shadow-[0_16px_32px_rgba(148,163,184,0.2)] transition-all hover:scale-[1.01]"
+              >
+                Start a project
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

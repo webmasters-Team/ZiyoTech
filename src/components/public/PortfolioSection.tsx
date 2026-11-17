@@ -18,20 +18,20 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ onNavigate }
         <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/40 border border-blue-800/60 text-xs font-mono text-blue-300">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Interactive Demonstrations & Prototypes</span>
+            <span>Completed Client Projects</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            {language === 'ru' ? 'Примеры Реализованных Систем' : language === 'en' ? 'Demonstration Systems' : 'Amaliy Tizimlar Namunasi'}
+            {language === 'ru' ? 'Готовые Проекты Компании' : language === 'en' ? 'Our Finished Projects' : 'Bizning Bitkazilgan Loyihalarimiz'}
           </h2>
           <p className="text-slate-300 text-base sm:text-lg leading-relaxed">
             {language === 'ru'
-              ? 'Демонстрационные проекты, иллюстрирующие возможности интеграции веб-разработки, интернет-магазинов и ИИ-агентов ZiyoTech.'
+              ? 'Выборка завершённых клиентских проектов, созданных для реального бизнеса и запущенных в работу.'
               : language === 'en'
-              ? 'Curated demonstration prototypes illustrating the synergy of high-performance engineering, e-commerce, and ZiyoTech AI Sales Agents.'
-              : "ZiyoTech veb-dasturlash, onlayn do'konlar va AI savdo agentlari integratsiyasining amaliy ko'rgazmali namunalari."}
+              ? 'A selection of completed client projects we have built and launched for real businesses across web, commerce, education, and automation.'
+              : 'Bizning haqiqiy bizneslar uchun yaratilgan va ishga tushirilgan bitkazilgan loyihalarimizdan tanlangan namunalar.'}
           </p>
           <div className="text-xs text-slate-400 bg-slate-950/80 px-4 py-2 rounded-lg border border-slate-800 inline-block">
-            Note: Demonstrational architecture blueprints crafted to showcase production capabilities.
+            Finished products and live systems built for real business outcomes.
           </div>
         </div>
 

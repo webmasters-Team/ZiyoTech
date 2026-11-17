@@ -29,9 +29,47 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [isMobileView, setIsMobileView] = useState(false);
 
   const langRef = useRef<HTMLDivElement>(null);
   const servicesRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const updateViewport = () => {
+      setIsMobileView(window.innerWidth < 1024);
+    };
+
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+
+    return () => window.removeEventListener('resize', updateViewport);
+  }, []);
+
+  useEffect(() => {
+    if (isMobileView) {
+      setIsHeaderVisible(true);
+      return;
+    }
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY < 20 || currentScrollY < lastScrollY.current) {
+        setIsHeaderVisible(true);
+      } else if (currentScrollY > lastScrollY.current) {
+        setIsHeaderVisible(false);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isMobileView]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -65,12 +103,20 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   ];
 
   const currentLangObj = languages.find((l) => l.code === language) || languages[0];
+
   return (
-    <header className={`sticky top-0 z-50 w-full backdrop-blur-2xl transition-all duration-300 ${
-      theme === 'dark'
-        ? 'bg-[#080C14]/95 border-b border-white/[0.08]'
-        : 'bg-white/95 border-b border-slate-200 shadow-sm'
-    }`}>
+    <header
+      className={`fixed inset-x-0 top-0 z-50 w-full backdrop-blur-2xl transition-all duration-300 ease-out ${
+        theme === 'dark'
+          ? 'bg-[#080C14]/95 border-b border-white/8'
+          : 'bg-white/95 border-b border-slate-200 shadow-sm'
+      }`}
+      style={{
+        transform: isMobileView || isHeaderVisible ? 'translateY(0)' : 'translateY(-110%)',
+        opacity: isMobileView || isHeaderVisible ? 1 : 0,
+        pointerEvents: isMobileView || isHeaderVisible ? 'auto' : 'none',
+      }}
+    >
       <div className="w-full px-4 sm:px-6 md:px-8 lg:px-10 xl:px-14 2xl:px-16 h-16 sm:h-20 flex items-center justify-between gap-4">
         
         {/* Left Side: Brand Zone (Logo & Company Name - Pinned Far Left) */}

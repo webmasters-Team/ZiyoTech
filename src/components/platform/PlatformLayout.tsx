@@ -32,6 +32,7 @@ import {
   FolderKanban,
 } from 'lucide-react';
 import { ProjectRequestsView } from './ProjectRequestsView';
+import { AiSalesAgentDashboard } from './AiSalesAgentDashboard';
 
 interface PlatformLayoutProps {
   onBackToSite: () => void;
@@ -48,6 +49,7 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) 
   const navItems = [
     { id: 'overview', label: t.platform.overview, icon: LayoutDashboard },
     { id: 'inbox', label: t.platform.inbox, icon: MessageSquare, badge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined },
+    { id: 'sales-agent', label: 'AI Sales Agent', icon: Bot },
     { id: 'requests', label: 'Project Requests', icon: FolderKanban },
     { id: 'instagram', label: t.platform.instagramAccounts, icon: Instagram },
     { id: 'products', label: t.platform.products, icon: Package },
@@ -66,6 +68,8 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) 
         return <OverviewView onNavigateTab={setActiveTab} />;
       case 'inbox':
         return <InboxView />;
+      case 'sales-agent':
+        return <AiSalesAgentDashboard />;
       case 'requests':
         return <ProjectRequestsView />;
       case 'instagram':

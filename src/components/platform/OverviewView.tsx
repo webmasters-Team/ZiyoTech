@@ -164,8 +164,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
                   stroke="#A855F7"
                   strokeWidth="3.5"
                 />
-                <circle cx="300" cy="45" r="5" fill="#06B6D4" stroke="#fff" strokeWidth="2" />
-                <circle cx="500" cy="20" r="5" fill="#3B82F6" stroke="#fff" strokeWidth="2" />
+                <circle cx="300" cy="45" r="5" fill="#06B6D4" stroke="#0F172A" strokeWidth="2" />
+                <circle cx="500" cy="20" r="5" fill="#3B82F6" stroke="#0F172A" strokeWidth="2" />
               </svg>
 
               <div className="absolute top-6 left-60 px-2 py-0.5 rounded bg-purple-950 text-purple-300 text-[10px] font-bold border border-purple-800">

@@ -50,6 +50,11 @@ export const translations = {
       requestConsultation: 'Konsultatsiya olish',
       deliverablesTitle: 'Natijalar:',
       benefitsTitle: 'Afzalliklari:',
+      pricingTitle: 'Narxlar',
+      pricingSubtitle: 'Sizga mos keladigan veb-sayt paketini tanlang',
+      pricingPlan: 'Paket',
+      perMonth: '/oy',
+      getStarted: 'Boshlash',
     },
     // AI Section
     aiSection: {
@@ -90,13 +95,13 @@ export const translations = {
     // Why Choose Us
     whyUs: {
       title: 'Nega Aynan ZiyoTech?',
-      subtitle: 'Biz shunchaki dasturchilar emasmiz, biznesingizning strategik texnologik hamkorimiz',
+      subtitle: 'Biz shunchali dasturchilar emasmiz, biznesingizning strategik texnologik hamkorimiz',
       point1Title: 'Barcha Raqamli Xizmatlar Bir Joyda',
       point1Desc: 'Veb-sayt, brending, video kontent, marketing va AI tizimlari yagona jamoa tomonidan yaratiladi.',
       point2Title: 'AI-First Texnologik Yondashuv',
       point2Desc: 'Eng so\'nggi sun\'iy intellekt modellarini biznesingiz jarayonlariga integratsiya qilamiz.',
       point3Title: 'Haqiqiy Biznes Natijalariga Qaratilganlik',
-      point3Desc: 'Dizayn shunchaki chiroyli emas, sotuvlarni oshiradigan va mijoz jalb qiladigan bo\'lishi kerak.',
+      point3Desc: 'Dizayn shunchali chiroyli emas, sotuvlarni oshiradigan va mijoz jalb qiladigan bo\'lishi kerak.',
       point4Title: 'Uzoq Muddatli Texnik Qo\'llab-quvvatlash',
       point4Desc: 'Loyihani topshirgandan keyin ham xavfsizlik, yangilanishlar va o\'sishda yoningizda bo\'lamiz.',
     },
@@ -201,6 +206,11 @@ export const translations = {
       requestConsultation: 'Запросить консультацию',
       deliverablesTitle: 'Результаты работы:',
       benefitsTitle: 'Преимущества:',
+      pricingTitle: 'Тарифы',
+      pricingSubtitle: 'Выберите оптимальный пакет веб-сайта для вашего бизнеса',
+      pricingPlan: 'Пакет',
+      perMonth: '/мес',
+      getStarted: 'Начать',
     },
     // AI Section
     aiSection: {
@@ -352,6 +362,11 @@ export const translations = {
       requestConsultation: 'Request Consultation',
       deliverablesTitle: 'Deliverables:',
       benefitsTitle: 'Key Benefits:',
+      pricingTitle: 'Pricing',
+      pricingSubtitle: 'Choose the website package that matches your growth stage',
+      pricingPlan: 'Plan',
+      perMonth: '/month',
+      getStarted: 'Get Started',
     },
     // AI Section
     aiSection: {

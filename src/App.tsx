@@ -20,6 +20,11 @@ import { ContactSection } from './components/public/ContactSection';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { Mic } from 'lucide-react';
 import { AdminLoginView } from './components/platform/AdminLoginView';
+import SalesAiDashboard from './pages/SalesAiDashboard';
+import SalesAiAdmin from './pages/SalesAiAdmin';
+import SalesAiOperations from './pages/SalesAiOperations';
+import SalesAiLogin from './pages/SalesAiLogin';
+import SalesAiOnboarding from './pages/SalesAiOnboarding';
 
 type AppLanguage = 'uz' | 'ru' | 'en';
 
@@ -116,8 +121,8 @@ const ProfessionalRobotButton = ({ onClick, isOpen }: { onClick: () => void; isO
     onClick={onClick}
     className={`group relative flex h-15 w-15 items-center justify-center rounded-2xl border transition-all duration-300 ${
       isOpen
-        ? 'border-cyan-200/60 bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-600 shadow-[0_12px_28px_rgba(56,189,248,0.4)]'
-        : 'border-cyan-300/40 bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-600 shadow-[0_12px_28px_rgba(59,130,246,0.4)]'
+        ? 'border-cyan-200/60 bg-linear-to-br from-cyan-400 via-sky-500 to-blue-600 shadow-[0_12px_28px_rgba(56,189,248,0.4)]'
+        : 'border-cyan-300/40 bg-linear-to-br from-cyan-500 via-blue-600 to-indigo-600 shadow-[0_12px_28px_rgba(59,130,246,0.4)]'
     } text-white hover:scale-105 hover:shadow-[0_16px_30px_rgba(59,130,246,0.5)] active:scale-95`}
     aria-label="Open platform assistant"
     title="Platform AI Assistant"
@@ -237,18 +242,85 @@ function AppContent() {
   const { theme } = useTheme();
   const [selectedServiceId, setSelectedServiceId] = useState<string>('web-dev');
 
-  const getAdminStatus = () => {
-    if (typeof window === 'undefined') return false;
-    const value = localStorage.getItem('ziotech-admin-auth');
-    return value === 'demo' || value === 'firebase';
+  const getServiceIdFromPath = (path: string) => {
+    if (path.startsWith('/services/')) {
+      return path.split('/services/')[1].split('/')[0] || undefined;
+    }
+
+    if (path.startsWith('/service-detail/')) {
+      return path.split('/service-detail/')[1].split('/')[0] || undefined;
+    }
+
+    return undefined;
   };
 
+  const getServiceRoute = (serviceId?: string) => {
+    if (!serviceId) return '/services';
+    return `/services/${serviceId}`;
+  };
+
+  const getAdminStatus = () => {
+    if (typeof window === 'undefined') return false;
+
+    const legacyFlag = localStorage.getItem('ziotech-admin-auth');
+    const token = localStorage.getItem('ziotech-admin-token') || localStorage.getItem('ziyo-sales-admin-token');
+    const user = localStorage.getItem('ziotech-admin-user') || localStorage.getItem('ziyo-sales-admin');
+
+    return (legacyFlag === 'demo' || legacyFlag === 'firebase') || Boolean(token) || Boolean(user);
+  };
+
+  const getSelectedSalesBusiness = () => {
+    if (typeof window === 'undefined') return null;
+
+    try {
+      const rawValue = localStorage.getItem('ziyo-sales-business');
+      if (!rawValue) return null;
+      const parsed = JSON.parse(rawValue);
+      return parsed && typeof parsed.id === 'string' ? parsed : null;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string>(() => getSelectedSalesBusiness()?.id || 'demo-business');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(getAdminStatus);
+
+  useEffect(() => {
+    const savedBusiness = getSelectedSalesBusiness();
+    if (savedBusiness?.id) {
+      setSelectedBusinessId(savedBusiness.id);
+    }
+  }, []);
+
+  const persistSelectedSalesBusiness = (businessId?: string, businessName?: string) => {
+    if (typeof window === 'undefined') return;
+
+    if (!businessId) {
+      localStorage.removeItem('ziyo-sales-business');
+      setSelectedBusinessId('demo-business');
+      return;
+    }
+
+    const nextValue = {
+      id: businessId,
+      name: businessName || 'Business account',
+      updatedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem('ziyo-sales-business', JSON.stringify(nextValue));
+    setSelectedBusinessId(businessId);
+  };
 
   const [currentPage, setCurrentPage] = useState<string>(() => {
     if (typeof window === 'undefined') return 'home';
 
     const path = window.location.pathname;
+    const serviceIdFromPath = getServiceIdFromPath(path);
+
+    if (serviceIdFromPath) {
+      return 'service-detail';
+    }
+
     if (path === '/admin') return getAdminStatus() ? 'platform' : 'admin-login';
     if (path === '/app' || path.startsWith('/app/')) return 'platform';
     if (path === '/products' || path === '/ai-sales-agent') return 'product-sales-agent';
@@ -257,6 +329,7 @@ function AppContent() {
     if (path === '/about') return 'about';
     if (path === '/portfolio') return 'portfolio';
     if (path === '/contact') return 'contact';
+    if (path === '/sales-ai') return 'sales-ai';
     return 'home';
   });
 
@@ -266,6 +339,13 @@ function AppContent() {
 
       const path = window.location.pathname;
       const isAuthenticated = getAdminStatus();
+      const serviceIdFromPath = getServiceIdFromPath(path);
+
+      if (serviceIdFromPath) {
+        setSelectedServiceId(serviceIdFromPath);
+        setCurrentPage('service-detail');
+        return;
+      }
 
       if (path === '/admin') {
         setCurrentPage(isAuthenticated ? 'platform' : 'admin-login');
@@ -285,6 +365,11 @@ function AppContent() {
       else if (path === '/about') setCurrentPage('about');
       else if (path === '/portfolio') setCurrentPage('portfolio');
       else if (path === '/contact') setCurrentPage('contact');
+      else if (path === '/sales-ai') setCurrentPage('sales-ai');
+      else if (path === '/sales-ai-admin') setCurrentPage('sales-ai-admin');
+      else if (path === '/sales-ai-operations') setCurrentPage('sales-ai-operations');
+      else if (path === '/sales-ai-login') setCurrentPage('sales-ai-login');
+      else if (path === '/sales-ai-onboarding') setCurrentPage('sales-ai-onboarding');
       else setCurrentPage('home');
     };
 
@@ -294,9 +379,17 @@ function AppContent() {
     return () => window.removeEventListener('popstate', syncPageFromLocation);
   }, []);
 
+  const navigateTo = (url: string, nextPage: string) => {
+    setCurrentPage(nextPage);
+    window.history.pushState({}, '', url);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   const handleNavigate = (page: string, serviceId?: string) => {
-    if (serviceId) {
-      setSelectedServiceId(serviceId);
+    const resolvedServiceId = serviceId || (page === 'service-detail' ? selectedServiceId : undefined);
+
+    if (resolvedServiceId) {
+      setSelectedServiceId(resolvedServiceId);
     }
 
     if (page === 'platform') {
@@ -304,26 +397,28 @@ function AppContent() {
       if (!authenticated) {
         setCurrentPage('admin-login');
         setIsAdminAuthenticated(false);
-        window.history.pushState({}, '', '/admin');
+        navigateTo('/admin', 'admin-login');
         return;
       }
 
       setCurrentPage('platform');
       setIsAdminAuthenticated(true);
-      window.history.pushState({}, '', '/app');
+      navigateTo('/app', 'platform');
       return;
     }
 
     if (page === 'admin-login') {
       setCurrentPage('admin-login');
       setIsAdminAuthenticated(false);
-      window.history.pushState({}, '', '/admin');
+      navigateTo('/admin', 'admin-login');
       return;
     }
 
     if (page === 'service-detail') {
+      const targetServiceId = resolvedServiceId || selectedServiceId;
       setCurrentPage('service-detail');
-      window.history.pushState({}, '', '/services');
+      setSelectedServiceId(targetServiceId);
+      navigateTo(getServiceRoute(targetServiceId), 'service-detail');
       return;
     }
 
@@ -335,16 +430,41 @@ function AppContent() {
       about: '/about',
       portfolio: '/portfolio',
       contact: '/contact',
+      'sales-ai': '/sales-ai',
+      'sales-ai-admin': '/sales-ai-admin',
+      'sales-ai-operations': '/sales-ai-operations',
+      'sales-ai-login': '/sales-ai-login',
+      'sales-ai-onboarding': '/sales-ai-onboarding',
     };
 
+    const nextRoute = routeMap[page] || '/';
     setCurrentPage(page);
-    window.history.pushState({}, '', routeMap[page] || '/');
+    navigateTo(nextRoute, page);
   };
 
   const handleAdminLogin = () => {
     setIsAdminAuthenticated(true);
     setCurrentPage('platform');
     window.history.pushState({}, '', '/app');
+  };
+
+  const handleSalesLogin = () => {
+    const savedBusiness = getSelectedSalesBusiness();
+    if (savedBusiness?.id) {
+      setSelectedBusinessId(savedBusiness.id);
+      setCurrentPage('sales-ai-admin');
+      navigateTo('/sales-ai-admin', 'sales-ai-admin');
+      return;
+    }
+
+    setCurrentPage('sales-ai-onboarding');
+    navigateTo('/sales-ai-onboarding', 'sales-ai-onboarding');
+  };
+
+  const handleSalesOnboard = (businessId?: string, businessName?: string) => {
+    persistSelectedSalesBusiness(businessId, businessName);
+    setCurrentPage('sales-ai-admin');
+    navigateTo('/sales-ai-admin', 'sales-ai-admin');
   };
 
   const handleBackToSite = () => {
@@ -382,6 +502,16 @@ function AppContent() {
         return <PortfolioSection onNavigate={handleNavigate} />;
       case 'contact':
         return <ContactSection />;
+      case 'sales-ai':
+        return <SalesAiDashboard businessId={selectedBusinessId} />;
+      case 'sales-ai-admin':
+        return <SalesAiAdmin businessId={selectedBusinessId} />;
+      case 'sales-ai-operations':
+        return <SalesAiOperations businessId={selectedBusinessId} />;
+      case 'sales-ai-login':
+        return <SalesAiLogin onLogin={handleSalesLogin} />;
+      case 'sales-ai-onboarding':
+        return <SalesAiOnboarding onContinue={handleSalesOnboard} />;
       default:
         return <PublicHome onNavigate={handleNavigate} />;
     }
@@ -393,7 +523,7 @@ function AppContent() {
         <Header onNavigate={handleNavigate} currentPage={currentPage} />
       )}
 
-      <main className="min-h-screen bg-[#080C14] text-slate-100">
+      <main className="min-h-screen bg-[#080C14] text-slate-100 pt-20 sm:pt-24">
         {renderContent()}
       </main>
 
