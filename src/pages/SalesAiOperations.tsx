@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
+const API_BASE_URL = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
+
 interface SalesAiOperationsProps {
   businessId?: string;
 }
@@ -27,9 +29,14 @@ export default function SalesAiOperations({ businessId = 'demo-business' }: Sale
   const loadData = async () => {
     try {
       const [leadsRes, conversationsRes] = await Promise.all([
-        fetch(`http://localhost:4000/api/leads?businessId=${encodeURIComponent(businessId)}`),
-        fetch(`http://localhost:4000/api/conversations?businessId=${encodeURIComponent(businessId)}`),
+        fetch(`${API_BASE_URL}/api/leads?businessId=${encodeURIComponent(businessId)}`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/conversations?businessId=${encodeURIComponent(businessId)}`, { credentials: 'include' }),
       ]);
+
+      if (leadsRes.status === 401 || conversationsRes.status === 401) {
+        window.dispatchEvent(new Event('ziyotech-admin-session-expired'));
+        return;
+      }
 
       const leadsData = await leadsRes.json();
       const conversationsData = await conversationsRes.json();

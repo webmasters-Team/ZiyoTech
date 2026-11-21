@@ -13,7 +13,8 @@ import {
   Check,
   Sparkles,
   Sun,
-  Moon
+  Moon,
+  UserRound
 } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 import { useTheme } from '../../context/ThemeContext';
@@ -319,6 +320,19 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
 
           {/* Primary CTA Button: "Boshlash" ("başla" / "Get Started" / "Начать") in Sapphire Cyan Gradient */}
           <button
+            onClick={() => onNavigate('account')}
+            className={`rounded-full border p-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+              theme === 'dark'
+                ? 'border-white/[0.1] bg-white/[0.04] text-slate-200 hover:bg-white/[0.08]'
+                : 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+            aria-label={language === 'ru' ? 'Войти или открыть аккаунт ZiyoTech' : language === 'uz' ? 'ZiyoTech akkauntiga kirish' : 'Sign in or open your ZiyoTech account'}
+            title={language === 'ru' ? 'Аккаунт' : language === 'uz' ? 'Akkaunt' : 'Account'}
+          >
+            <UserRound className="h-4 w-4" />
+          </button>
+
+          <button
             onClick={() => onNavigate('contact')}
             className="hidden sm:flex items-center gap-2 px-5 sm:px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 rounded-full shadow-lg shadow-blue-600/30 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap shrink-0"
           >
@@ -415,6 +429,19 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             >
               <span>{t.nav.getStarted}</span>
               <ArrowRight className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => {
+                onNavigate('account');
+                setMobileMenuOpen(false);
+              }}
+              className={`mb-3 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold ${
+                theme === 'dark' ? 'border-white/10 bg-white/[0.04] text-slate-200' : 'border-slate-200 bg-white text-slate-700'
+              }`}
+            >
+              <UserRound className="h-4 w-4" />
+              {language === 'ru' ? 'Аккаунт ZiyoTech' : language === 'uz' ? 'ZiyoTech akkaunti' : 'ZiyoTech account'}
             </button>
 
             <button

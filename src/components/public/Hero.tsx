@@ -148,11 +148,15 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
               theme === 'dark' ? 'bg-[#080C14] shadow-[0_35px_90px_rgba(15,23,42,0.5)]' : 'bg-white shadow-[0_30px_90px_rgba(148,163,184,0.4)]'
             }`}>
               <video
-                className="h-full w-full object-cover opacity-95 transition-opacity duration-500"
+                className="pointer-events-none h-full w-full object-cover opacity-95 transition-opacity duration-500"
                 autoPlay
                 loop
                 muted
                 playsInline
+                controls={false}
+                disablePictureInPicture
+                controlsList="nodownload noplaybackrate noremoteplayback"
+                disableRemotePlayback
                 preload="auto"
               >
                 <source src="/assets/1.mp4" type="video/mp4" />

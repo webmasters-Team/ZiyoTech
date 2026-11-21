@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePlatform } from '../../context/PlatformContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { OverviewView } from './OverviewView';
@@ -9,6 +9,7 @@ import { CustomersView } from './CustomersView';
 import { AiConfigView } from './AiConfigView';
 import { KnowledgeBaseView } from './KnowledgeBaseView';
 import { AnalyticsView } from './AnalyticsView';
+import { VisitorAnalyticsView } from './VisitorAnalyticsView';
 import { InstagramAccountsView } from './InstagramAccountsView';
 import { TeamView } from './TeamView';
 import { SettingsView } from './SettingsView';
@@ -28,25 +29,54 @@ import {
   Shield,
   Menu,
   X,
+  LogOut,
   Globe,
   FolderKanban,
+  Radio,
 } from 'lucide-react';
 import { ProjectRequestsView } from './ProjectRequestsView';
 import { AiSalesAgentDashboard } from './AiSalesAgentDashboard';
 
+const VISITOR_ANALYTICS_API_BASE = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
+
 interface PlatformLayoutProps {
   onBackToSite: () => void;
+  onLogout: () => Promise<boolean>;
 }
 
-export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) => {
+export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite, onLogout }) => {
   const { role, setRole, conversations } = usePlatform();
   const { language, setLanguage, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
+  const [canViewVisitorAnalytics, setCanViewVisitorAnalytics] = useState(false);
+  const [logoutError, setLogoutError] = useState('');
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`${VISITOR_ANALYTICS_API_BASE}/api/visitor-analytics/access`, {
+      credentials: 'include',
+      signal: controller.signal,
+    }).then(async (response) => {
+      if (!response.ok) return { allowed: false };
+      return response.json() as Promise<{ allowed?: boolean }>;
+    }).then((result) => {
+      if (!controller.signal.aborted) setCanViewVisitorAnalytics(result.allowed === true);
+    }).catch(() => {
+      if (!controller.signal.aborted) setCanViewVisitorAnalytics(false);
+    });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (canViewVisitorAnalytics) setActiveTab('visitor-analytics');
+  }, [canViewVisitorAnalytics]);
 
   const unreadMessagesCount = conversations.reduce((acc, c) => acc + c.unreadCount, 0);
 
   const navItems = [
+    ...(canViewVisitorAnalytics ? [{ id: 'visitor-analytics', label: language === 'ru' ? 'Панель администратора' : language === 'en' ? 'Admin Dashboard' : 'Admin paneli', icon: Radio }] : []),
     { id: 'overview', label: t.platform.overview, icon: LayoutDashboard },
     { id: 'inbox', label: t.platform.inbox, icon: MessageSquare, badge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined },
     { id: 'sales-agent', label: 'AI Sales Agent', icon: Bot },
@@ -86,6 +116,8 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) 
         return <KnowledgeBaseView />;
       case 'analytics':
         return <AnalyticsView />;
+      case 'visitor-analytics':
+        return canViewVisitorAnalytics ? <VisitorAnalyticsView /> : <OverviewView onNavigateTab={setActiveTab} />;
       case 'team':
         return <TeamView />;
       case 'settings':
@@ -143,8 +175,13 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite }) 
               </button>
             ))}
           </div>
+          <button type="button" disabled={loggingOut} onClick={async () => { setLogoutError(''); setLoggingOut(true); const succeeded = await onLogout(); setLoggingOut(false); if (!succeeded) setLogoutError(language === 'ru' ? 'Не удалось завершить сеанс. Повторите попытку.' : language === 'en' ? 'Sign out could not be confirmed. Please try again.' : 'Seansni yakunlab bo‘lmadi. Qayta urinib ko‘ring.'); }} className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-2.5 py-2 text-xs font-semibold text-slate-300 transition hover:border-rose-800 hover:bg-rose-950/30 hover:text-rose-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 disabled:opacity-50" aria-label={language === 'ru' ? 'Выйти из панели' : language === 'en' ? 'Sign out of administrator dashboard' : 'Admin panelidan chiqish'}>
+            <LogOut className="h-4 w-4" /><span className="hidden sm:inline">{loggingOut ? '…' : language === 'ru' ? 'Выйти' : language === 'en' ? 'Sign out' : 'Chiqish'}</span>
+          </button>
         </div>
       </header>
+
+      {logoutError && <p role="alert" className="mx-4 mt-3 rounded-lg border border-rose-800/50 bg-rose-950/30 px-3 py-2 text-xs text-rose-200 sm:mx-6">{logoutError}</p>}
 
       <div className="flex-1 flex overflow-hidden">
         <aside className="hidden md:flex flex-col w-64 border-r border-slate-800 bg-[#09101D] p-4 space-y-1 shrink-0 overflow-y-auto">

@@ -128,24 +128,22 @@ const getAdminSession = () => {
   }
 };
 
-const getAuthToken = (): string => {
-  if (typeof window === 'undefined') return '';
-
-  const adminToken = localStorage.getItem('ziotech-admin-token');
-  if (adminToken) return adminToken;
-
-  const salesToken = localStorage.getItem('ziyo-sales-admin-token');
-  if (salesToken) return salesToken;
-
-  return '';
-};
-
 const getAuthHeaders = () => {
-  const token = getAuthToken();
+  const csrfCookie = typeof document === 'undefined' ? '' : document.cookie.split('; ').find((part) => /(?:^|__Host-)ziyo_(?:admin_)?csrf=/.test(part));
+  const csrfToken = csrfCookie?.slice(csrfCookie.indexOf('=') + 1) || '';
   return {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(csrfToken ? { 'X-CSRF-Token': decodeURIComponent(csrfToken) } : {}),
   };
+};
+
+const adminFetch = (url: string, options: RequestInit = {}) => {
+  const headers = new Headers(getAuthHeaders());
+  new Headers(options.headers).forEach((value, key) => headers.set(key, value));
+  return fetch(url, { ...options, credentials: 'include', headers }).then((response) => {
+    if (response.status === 401) window.dispatchEvent(new Event('ziyotech-admin-session-expired'));
+    return response;
+  });
 };
 
 export const AiSalesAgentDashboard: React.FC = () => {
@@ -196,11 +194,11 @@ export const AiSalesAgentDashboard: React.FC = () => {
 
     try {
       const [overviewRes, productsRes, leadsRes, conversationsRes, settingsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/businesses/${businessId}/overview`, { headers: getAuthHeaders() }),
-        fetch(`${API_BASE_URL}/api/businesses/${businessId}/products`, { headers: getAuthHeaders() }),
-        fetch(`${API_BASE_URL}/api/businesses/${businessId}/leads`, { headers: getAuthHeaders() }),
-        fetch(`${API_BASE_URL}/api/businesses/${businessId}/conversations`, { headers: getAuthHeaders() }),
-        fetch(`${API_BASE_URL}/api/businesses/${businessId}/ai-settings`, { headers: getAuthHeaders() }),
+        adminFetch(`${API_BASE_URL}/api/businesses/${businessId}/overview`),
+        adminFetch(`${API_BASE_URL}/api/businesses/${businessId}/products`),
+        adminFetch(`${API_BASE_URL}/api/businesses/${businessId}/leads`),
+        adminFetch(`${API_BASE_URL}/api/businesses/${businessId}/conversations`),
+        adminFetch(`${API_BASE_URL}/api/businesses/${businessId}/ai-settings`),
       ]);
 
       if (!overviewRes.ok || !productsRes.ok || !leadsRes.ok || !conversationsRes.ok || !settingsRes.ok) {
@@ -258,18 +256,23 @@ export const AiSalesAgentDashboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const token = getAuthToken();
-    const user = getAdminSession();
-    if (!token || !user) {
-      setLoading(false);
-      setError('Admin session is missing. Sign in again to access the sales dashboard.');
-      if (typeof window !== 'undefined') {
-        window.location.href = '/admin';
+    let cancelled = false;
+    void adminFetch(`${API_BASE_URL}/api/admin/session`).then(async (response) => {
+      if (!response.ok) throw new Error('Administrator session is missing. Sign in again.');
+      const payload = await response.json() as { user?: { id: string; name: string; email: string } };
+      if (cancelled) return;
+      if (payload.user) {
+        setSessionUser(payload.user);
+        localStorage.setItem('ziyo-sales-admin', JSON.stringify(payload.user));
       }
-      return;
-    }
-
-    refreshBusinessData();
+      await refreshBusinessData();
+    }).catch((sessionError) => {
+      if (cancelled) return;
+      setLoading(false);
+      setError(sessionError instanceof Error ? sessionError.message : 'Administrator session is missing. Sign in again.');
+      window.location.href = '/admin';
+    });
+    return () => { cancelled = true; };
   }, [businessId]);
 
   useEffect(() => {
@@ -293,9 +296,8 @@ export const AiSalesAgentDashboard: React.FC = () => {
 
     setSavingProduct(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/businesses/${businessId}/products`, {
+      const response = await adminFetch(`${API_BASE_URL}/api/businesses/${businessId}/products`, {
         method: 'POST',
-        headers: getAuthHeaders(),
         body: JSON.stringify({
           name: productForm.name,
           category: productForm.category,
@@ -319,9 +321,8 @@ export const AiSalesAgentDashboard: React.FC = () => {
 
   const updateLeadStatus = async (leadId: string, status: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/businesses/${businessId}/leads/${leadId}/status`, {
+      const response = await adminFetch(`${API_BASE_URL}/api/businesses/${businessId}/leads/${leadId}/status`, {
         method: 'PATCH',
-        headers: getAuthHeaders(),
         body: JSON.stringify({ status }),
       });
 
@@ -335,9 +336,8 @@ export const AiSalesAgentDashboard: React.FC = () => {
 
   const updateConversationStatus = async (conversationId: string, status: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/businesses/${businessId}/conversations/${conversationId}`, {
+      const response = await adminFetch(`${API_BASE_URL}/api/businesses/${businessId}/conversations/${conversationId}`, {
         method: 'PATCH',
-        headers: getAuthHeaders(),
         body: JSON.stringify({ status }),
       });
 
@@ -352,9 +352,8 @@ export const AiSalesAgentDashboard: React.FC = () => {
   const saveSettings = async () => {
     setSettingsSaving(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/businesses/${businessId}/ai-settings`, {
+      const response = await adminFetch(`${API_BASE_URL}/api/businesses/${businessId}/ai-settings`, {
         method: 'PUT',
-        headers: getAuthHeaders(),
         body: JSON.stringify({
           assistantName: settings.assistantName,
           welcomeMessage: settings.welcomeMessage,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { usePlatform } from '../../context/PlatformContext';
 import { useLanguage } from '../../context/LanguageContext';
 import {
@@ -20,10 +20,26 @@ interface OverviewViewProps {
   onNavigateTab: (tab: string) => void;
 }
 
+type ActivityPoint = { date: Date; conversations: number; inquiries: number };
+type Coordinate = { x: number; y: number };
+
+const smoothPath = (points: Coordinate[]) => {
+  if (!points.length) return '';
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+  return points.reduce((path, point, index) => {
+    if (index === 0) return `M ${point.x} ${point.y}`;
+    const previous = points[index - 1];
+    const control = (point.x - previous.x) / 2;
+    return `${path} C ${previous.x + control} ${previous.y}, ${point.x - control} ${point.y}, ${point.x} ${point.y}`;
+  }, '');
+};
+
 export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => {
   const { language } = useLanguage();
   const {
     conversations,
+    projectRequests,
+    projectRequestsLoadStatus,
     orders,
     products,
     instagramAccount,
@@ -34,6 +50,65 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
   const aiHandledCount = conversations.filter((conversation) => conversation.status === 'ai_handling').length;
   const humanHandledCount = conversations.filter((conversation) => conversation.status === 'human_takeover').length;
   const totalOrdersCount = orders.length;
+  const [activityRange, setActivityRange] = useState<7 | 30 | 90>(30);
+  const [activePoint, setActivePoint] = useState<number | null>(null);
+
+  const activityPoints = useMemo<ActivityPoint[]>(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const firstDay = new Date(today);
+    firstDay.setDate(firstDay.getDate() - activityRange + 1);
+    const dayKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const buckets = Array.from({ length: activityRange }, (_, index) => {
+      const date = new Date(firstDay);
+      date.setDate(firstDay.getDate() + index);
+      return { date, conversations: 0, inquiries: 0 };
+    });
+    const byDate = new Map(buckets.map((point) => [dayKey(point.date), point]));
+
+    // Legacy conversation timestamps may contain only a clock time or relative text.
+    // Count only records carrying a full date so historic activity is never guessed.
+    conversations.forEach((conversation) => {
+      if (!/^\d{4}-\d{2}-\d{2}T/.test(conversation.lastTimestamp)) return;
+      const date = new Date(conversation.lastTimestamp);
+      if (!Number.isNaN(date.getTime())) {
+        const bucket = byDate.get(dayKey(date));
+        if (bucket) bucket.conversations += 1;
+      }
+    });
+    projectRequests.forEach((request) => {
+      if (!/^\d{4}-\d{2}-\d{2}T/.test(request.createdAt)) return;
+      const date = new Date(request.createdAt);
+      if (!Number.isNaN(date.getTime())) {
+        const bucket = byDate.get(dayKey(date));
+        if (bucket) bucket.inquiries += 1;
+      }
+    });
+    return buckets;
+  }, [activityRange, conversations, projectRequests]);
+
+  const activityTotals = activityPoints.reduce((totals, point) => ({
+    conversations: totals.conversations + point.conversations,
+    inquiries: totals.inquiries + point.inquiries,
+  }), { conversations: 0, inquiries: 0 });
+  const activityTotal = activityTotals.conversations + activityTotals.inquiries;
+  const chartCopy = language === 'ru'
+    ? { title: 'Активность диалогов и обращений', description: 'Число диалогов с датой последней активности и отправленных заявок по дням.', conversations: 'Диалоги', inquiries: 'Заявки', total: 'Всего действий', last7: '7 дней', last30: '30 дней', last90: '90 дней', empty: 'За выбранный период нет записей с подтвержденными датами.', loading: 'Загрузка активности…', error: 'Не удалось загрузить заявки. Попробуйте обновить страницу.', dataNote: 'Диалоги без полной даты исключены. Общее число действий — сумма диалогов с датой активности и отправленных заявок.', day: 'день', tooltipDate: 'Дата', range: 'Период' }
+    : language === 'uz'
+      ? { title: 'Suhbatlar va so‘rovlar faolligi', description: 'Oxirgi faollik sanasi mavjud suhbatlar va yuborilgan so‘rovlar kunlar bo‘yicha.', conversations: 'Suhbatlar', inquiries: 'So‘rovlar', total: 'Jami faollik', last7: '7 kun', last30: '30 kun', last90: '90 kun', empty: 'Tanlangan davrda sanasi tasdiqlangan yozuvlar yo‘q.', loading: 'Faollik yuklanmoqda…', error: 'So‘rovlarni yuklab bo‘lmadi. Sahifani yangilab ko‘ring.', dataNote: 'To‘liq sanasi bo‘lmagan suhbatlar chiqarib tashlanadi. Jami faollik sanali suhbatlar va yuborilgan so‘rovlar yig‘indisidir.', day: 'kun', tooltipDate: 'Sana', range: 'Davr' }
+      : { title: 'Conversation & Inquiry Activity', description: 'Dated conversations and submitted project inquiries by day.', conversations: 'Conversations', inquiries: 'Inquiries', total: 'Total activity', last7: '7 days', last30: '30 days', last90: '90 days', empty: 'No records with reliable dates were found for this period.', loading: 'Loading activity…', error: 'Inquiry data could not be loaded. Try refreshing the page.', dataNote: 'Conversations without a full date are excluded. Total activity is the sum of dated conversations and submitted inquiries.', day: 'day', tooltipDate: 'Date', range: 'Date range' };
+  const chartGeometry = { width: 760, height: 250, left: 48, right: 18, top: 18, bottom: 38 };
+  const chartMax = Math.max(1, ...activityPoints.flatMap((point) => [point.conversations, point.inquiries]));
+  const chartCoords = (values: number[]): Coordinate[] => values.map((value, index) => ({
+    x: chartGeometry.left + (activityPoints.length <= 1 ? 0 : (index / (activityPoints.length - 1)) * (chartGeometry.width - chartGeometry.left - chartGeometry.right)),
+    y: chartGeometry.top + (chartGeometry.height - chartGeometry.top - chartGeometry.bottom) * (1 - value / chartMax),
+  }));
+  const conversationCoords = chartCoords(activityPoints.map((point) => point.conversations));
+  const inquiryCoords = chartCoords(activityPoints.map((point) => point.inquiries));
+  const conversationPath = smoothPath(conversationCoords);
+  const inquiryPath = smoothPath(inquiryCoords);
+  const areaPath = (path: string, coords: Coordinate[]) => coords.length ? `${path} L ${coords[coords.length - 1].x} ${chartGeometry.height - chartGeometry.bottom} L ${coords[0].x} ${chartGeometry.height - chartGeometry.bottom} Z` : '';
+  const formatActivityDate = (date: Date) => new Intl.DateTimeFormat(language, { month: 'short', day: 'numeric' }).format(date);
 
   return (
     <div className="space-y-8">
@@ -135,43 +210,71 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateTab }) => 
       {/* Main Split: Trend Chart & Active Live Conversations */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-7 space-y-6">
-          <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-white">Conversation & Inquiries Velocity</h3>
-                <p className="text-xs text-slate-400">Daily message traffic over past 30 days</p>
+          <div className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-4 shadow-xl shadow-black/20 sm:p-6">
+            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <h3 className="text-base font-bold tracking-tight text-white sm:text-lg">{chartCopy.title}</h3>
+                <p className="mt-1 max-w-xl text-xs leading-relaxed text-slate-400">{chartCopy.description}</p>
               </div>
-              <span className="text-xs px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 font-mono">
-                Live data
-              </span>
-            </div>
-
-            <div className="relative h-44 w-full pt-4">
-              <svg className="w-full h-full overflow-visible" viewBox="0 0 500 150">
-                <defs>
-                  <linearGradient id="neonGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.4" />
-                    <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.0" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M 0,110 Q 50,130 100,90 T 200,80 T 300,45 T 400,60 T 500,20 L 500,150 L 0,150 Z"
-                  fill="url(#neonGradient)"
-                />
-                <path
-                  d="M 0,110 Q 50,130 100,90 T 200,80 T 300,45 T 400,60 T 500,20"
-                  fill="none"
-                  stroke="#A855F7"
-                  strokeWidth="3.5"
-                />
-                <circle cx="300" cy="45" r="5" fill="#06B6D4" stroke="#0F172A" strokeWidth="2" />
-                <circle cx="500" cy="20" r="5" fill="#3B82F6" stroke="#0F172A" strokeWidth="2" />
-              </svg>
-
-              <div className="absolute top-6 left-60 px-2 py-0.5 rounded bg-purple-950 text-purple-300 text-[10px] font-bold border border-purple-800">
-                {totalConversations ? '+Live data' : 'No data'}
+              <div className="inline-flex shrink-0 rounded-xl border border-slate-800 bg-slate-950/70 p-1" role="group" aria-label={chartCopy.range}>
+                {([7, 30, 90] as const).map((days) => <button key={days} type="button" onClick={() => { setActivityRange(days); setActivePoint(null); }} aria-pressed={activityRange === days} className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${activityRange === days ? 'bg-cyan-500/15 text-cyan-200 shadow-sm' : 'text-slate-500 hover:text-slate-200'}`}>{days === 7 ? chartCopy.last7 : days === 30 ? chartCopy.last30 : chartCopy.last90}</button>)}
               </div>
             </div>
+
+            <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-3">
+              {[
+                { label: chartCopy.total, value: activityTotal, tone: 'text-white' },
+                { label: chartCopy.conversations, value: activityTotals.conversations, tone: 'text-cyan-300' },
+                { label: chartCopy.inquiries, value: activityTotals.inquiries, tone: 'text-violet-300' },
+              ].map((metric) => <div key={metric.label} className="min-w-0 rounded-xl border border-slate-800/90 bg-slate-950/55 px-3 py-2.5 sm:px-4"><div className="truncate text-[10px] font-medium text-slate-500 sm:text-xs">{metric.label}</div><div className={`mt-1 text-lg font-bold tabular-nums sm:text-xl ${metric.tone}`}>{metric.value}</div></div>)}
+            </div>
+
+            <div className="relative min-h-[230px] rounded-xl border border-slate-800/70 bg-slate-950/35 px-1 py-3 sm:px-3">
+              {projectRequestsLoadStatus === 'loading' ? <div className="flex min-h-[225px] animate-pulse flex-col justify-center gap-4 px-6" role="status" aria-live="polite"><div className="h-3 w-40 rounded bg-slate-800" /><div className="h-32 rounded-xl bg-gradient-to-r from-slate-900 via-slate-800/70 to-slate-900" /><span className="text-xs text-slate-500">{chartCopy.loading}</span></div>
+                : projectRequestsLoadStatus === 'error' ? <div className="flex min-h-[225px] flex-col items-center justify-center px-5 text-center" role="alert"><div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-rose-900/60 bg-rose-950/30 text-rose-300"><AlertCircle className="h-5 w-5" /></div><p className="text-sm font-medium text-slate-200">{chartCopy.error}</p><p className="mt-1 max-w-md text-xs text-slate-500">{chartCopy.dataNote}</p></div>
+                  : activityTotal > 0 ? <>
+                <svg viewBox={`0 0 ${chartGeometry.width} ${chartGeometry.height}`} className="h-[225px] w-full overflow-visible" role="group" aria-label={`${chartCopy.title}, ${activityRange} days`}>
+                  <defs>
+                    <linearGradient id="overviewConversationArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#22d3ee" stopOpacity="0.22" /><stop offset="100%" stopColor="#22d3ee" stopOpacity="0" /></linearGradient>
+                    <linearGradient id="overviewInquiryArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#a78bfa" stopOpacity="0.2" /><stop offset="100%" stopColor="#a78bfa" stopOpacity="0" /></linearGradient>
+                  </defs>
+                  {[0, 1, 2, 3].map((tick) => {
+                    const y = chartGeometry.top + tick * (chartGeometry.height - chartGeometry.top - chartGeometry.bottom) / 3;
+                    const value = Math.ceil(chartMax * (1 - tick / 3));
+                    return <g key={tick}><line x1={chartGeometry.left} x2={chartGeometry.width - chartGeometry.right} y1={y} y2={y} stroke="#263244" strokeDasharray="3 6" /><text x={chartGeometry.left - 10} y={y + 4} textAnchor="end" fill="#64748b" fontSize="10">{value}</text></g>;
+                  })}
+                  <path d={areaPath(conversationPath, conversationCoords)} fill="url(#overviewConversationArea)" />
+                  <path d={areaPath(inquiryPath, inquiryCoords)} fill="url(#overviewInquiryArea)" />
+                  <path d={conversationPath} fill="none" stroke="#22d3ee" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                  <path d={inquiryPath} fill="none" stroke="#a78bfa" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                  {activityPoints.filter((_, index) => index === 0 || index === activityPoints.length - 1 || index % Math.max(1, Math.ceil(activityPoints.length / 6)) === 0).map((point) => {
+                    const index = activityPoints.indexOf(point);
+                    const x = conversationCoords[index].x;
+                    return <text key={point.date.toISOString()} x={x} y={chartGeometry.height - 8} textAnchor="middle" fill="#64748b" fontSize="10">{formatActivityDate(point.date)}</text>;
+                  })}
+                  {activityPoints.map((point, index) => {
+                    const x = conversationCoords[index].x;
+                    const activeY = Math.min(conversationCoords[index].y, inquiryCoords[index].y);
+                    return <g key={point.date.toISOString()} onMouseEnter={() => setActivePoint(index)} onMouseLeave={() => setActivePoint(null)} onFocus={() => setActivePoint(index)} onBlur={() => setActivePoint(null)}>
+                      <line x1={x} x2={x} y1={chartGeometry.top} y2={chartGeometry.height - chartGeometry.bottom} stroke={activePoint === index ? '#475569' : 'transparent'} strokeDasharray="3 5" />
+                      <circle cx={x} cy={conversationCoords[index].y} r={activePoint === index ? 4.5 : 3} fill="#22d3ee" stroke="#0f172a" strokeWidth="2" className="transition-all duration-150" />
+                      <circle cx={x} cy={inquiryCoords[index].y} r={activePoint === index ? 4.5 : 3} fill="#a78bfa" stroke="#0f172a" strokeWidth="2" className="transition-all duration-150" />
+                      <circle cx={x} cy={activeY} r="12" fill="transparent" tabIndex={0} role="button" aria-label={`${chartCopy.tooltipDate} ${formatActivityDate(point.date)}: ${chartCopy.conversations} ${point.conversations}, ${chartCopy.inquiries} ${point.inquiries}`} className="cursor-crosshair outline-none focus-visible:stroke-cyan-300 focus-visible:stroke-2" />
+                    </g>;
+                  })}
+                </svg>
+                {activePoint !== null && activityPoints[activePoint] && <div role="tooltip" className="pointer-events-none absolute right-3 top-3 z-10 min-w-40 rounded-xl border border-slate-700 bg-slate-950/95 px-3 py-2.5 text-xs shadow-xl shadow-black/40 sm:right-5 sm:top-5">
+                  <div className="mb-2 font-semibold text-white">{formatActivityDate(activityPoints[activePoint].date)}, {activityPoints[activePoint].date.getFullYear()}</div>
+                  <div className="flex items-center justify-between gap-5 text-slate-300"><span className="flex items-center gap-2"><i className="h-2 w-2 rounded-full bg-cyan-400" />{chartCopy.conversations}</span><b className="tabular-nums text-white">{activityPoints[activePoint].conversations}</b></div>
+                  <div className="mt-1 flex items-center justify-between gap-5 text-slate-300"><span className="flex items-center gap-2"><i className="h-2 w-2 rounded-full bg-violet-400" />{chartCopy.inquiries}</span><b className="tabular-nums text-white">{activityPoints[activePoint].inquiries}</b></div>
+                </div>}
+              </> : <div className="flex min-h-[225px] flex-col items-center justify-center px-5 text-center"><div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-slate-500"><TrendingUp className="h-5 w-5" /></div><p className="text-sm font-medium text-slate-300">{chartCopy.empty}</p><p className="mt-1 max-w-md text-xs text-slate-500">{chartCopy.dataNote}</p></div>}
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-500">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1"><span className="inline-flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-cyan-400" />{chartCopy.conversations}</span><span className="inline-flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-violet-400" />{chartCopy.inquiries}</span></div>
+              <span>{activityRange} {chartCopy.day}{language === 'en' ? 's' : ''}</span>
+            </div>
+            <p className="text-[10px] leading-relaxed text-slate-500">{chartCopy.dataNote}</p>
 
             <div className="pt-4 border-t border-slate-800 grid grid-cols-2 gap-4 text-xs">
               <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">

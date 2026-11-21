@@ -16,6 +16,10 @@ import {
   Target,
   Users,
 } from 'lucide-react';
+import dentalverseTeamImage from '../../23.png';
+import internationalDeliveryImage from '../../25.png';
+import mainPromotionalVideo from '../../video_for_main.mp4';
+import { ServicesVideoShowcase } from './ServicesVideoShowcase';
 
 interface AboutSectionProps {
   onNavigate: (page: string) => void;
@@ -101,7 +105,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
           </p>
         </div>
 
-        <div className="mb-16 grid grid-cols-1 gap-7 lg:grid-cols-[1.12fr_0.88fr]">
+        <div className="mb-16 grid grid-cols-1 items-stretch gap-7 lg:grid-cols-[1.12fr_0.88fr]">
           <div className="rounded-[30px] border border-slate-800 bg-[#0a1017] p-7 shadow-[0_30px_90px_rgba(2,6,23,0.45)] sm:p-8">
             <div className="mb-6 flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900 text-blue-300">
@@ -138,15 +142,15 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="overflow-hidden rounded-[30px] border border-slate-800 bg-slate-900 shadow-[0_20px_60px_rgba(2,6,23,0.5)]">
+          <div className="flex flex-col gap-4 lg:h-full">
+            <div className="aspect-video w-full shrink-0 overflow-hidden rounded-[30px] border border-slate-800 bg-slate-900 shadow-[0_20px_60px_rgba(2,6,23,0.5)]">
               <img
-                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80"
-                alt="Global software team"
-                className="h-64 w-full object-cover grayscale-[0.12]"
+                src={internationalDeliveryImage}
+                alt="International team collaborating on a dental software project"
+                className="h-full w-full object-cover object-center grayscale-[0.12]"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 items-stretch gap-4 lg:shrink-0">
               <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
                   <Users className="h-5 w-5" />
@@ -189,11 +193,11 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
         </div>
 
         <div className="mb-16 grid grid-cols-1 gap-8 lg:grid-cols-[0.82fr_1.18fr]">
-          <div className="overflow-hidden rounded-[30px] border border-slate-800 bg-slate-900">
+          <div className="relative min-h-[420px] overflow-hidden rounded-[30px] border border-slate-800 bg-slate-900">
             <img
-              src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80"
-              alt="Dentalverse platform planning and software engineering"
-              className="h-full min-h-[420px] w-full object-cover grayscale-[0.16]"
+              src={dentalverseTeamImage}
+              alt="Four professionals collaborating on a dental software project"
+              className="absolute inset-0 h-full w-full object-cover object-center grayscale-[0.16]"
             />
           </div>
 
@@ -287,6 +291,8 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
             </div>
           </div>
         </div>
+
+        <ServicesVideoShowcase source={mainPromotionalVideo} />
       </div>
     </section>
   );

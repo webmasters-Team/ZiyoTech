@@ -1,5 +1,18 @@
 import React, { useEffect, useState } from 'react';
 
+const API_BASE_URL = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
+const adminRequest = (url: string, init: RequestInit = {}) => {
+  const csrfCookie = document.cookie.split('; ').find((part) => /(?:^|__Host-)ziyo_(?:admin_)?csrf=/.test(part));
+  const csrfToken = decodeURIComponent(csrfCookie?.slice(csrfCookie.indexOf('=') + 1) || '');
+  const headers = new Headers(init.headers);
+  if (init.body) headers.set('Content-Type', 'application/json');
+  if (csrfToken) headers.set('X-CSRF-Token', csrfToken);
+  return fetch(url, { ...init, headers, credentials: 'include' }).then((response) => {
+    if (response.status === 401) window.dispatchEvent(new Event('ziyotech-admin-session-expired'));
+    return response;
+  });
+};
+
 interface SalesAiAdminProps {
   businessId?: string;
 }
@@ -30,7 +43,7 @@ export default function SalesAiAdmin({ businessId = 'demo-business' }: SalesAiAd
 
   const loadProducts = async () => {
     try {
-      const res = await fetch(`http://localhost:4000/api/catalog?businessId=${encodeURIComponent(businessId)}`);
+      const res = await fetch(`${API_BASE_URL}/api/catalog?businessId=${encodeURIComponent(businessId)}`);
       const data = await res.json();
       setProducts(data);
     } catch (error) {
@@ -47,9 +60,8 @@ export default function SalesAiAdmin({ businessId = 'demo-business' }: SalesAiAd
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:4000/api/products', {
+      const res = await adminRequest(`${API_BASE_URL}/api/products`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           businessId,
           ...form,
@@ -67,7 +79,7 @@ export default function SalesAiAdmin({ businessId = 'demo-business' }: SalesAiAd
 
   const handleDelete = async (productId: string) => {
     try {
-      await fetch(`http://localhost:4000/api/products/${productId}`, { method: 'DELETE' });
+      await adminRequest(`${API_BASE_URL}/api/products/${productId}`, { method: 'DELETE' });
       await loadProducts();
     } catch (error) {
       console.error('Failed to delete product', error);

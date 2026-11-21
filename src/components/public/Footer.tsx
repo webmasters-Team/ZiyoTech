@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { servicesData } from '../../data/servicesData';
-import { LegalModal } from './LegalModal';
-import { ArrowUpRight, Shield, Globe } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 
 interface FooterProps {
@@ -11,7 +10,6 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   const { language, t } = useLanguage();
-  const [legalType, setLegalType] = useState<'privacy' | 'terms' | null>(null);
 
   return (
     <footer className="w-full bg-[#050811] border-t border-slate-800/80 pt-16 pb-12 text-slate-400">
@@ -29,8 +27,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </p>
 
             <div className="pt-2 text-xs text-slate-400 space-y-1">
-              <div>Tashkent & Global Tech Operations</div>
-              <div className="text-cyan-400 font-mono text-[11px]">contact@ziyotech.uz</div>
+              <div>Seoul, South Korea</div>
+              <div>Global Tech Operations</div>
+              <a href="https://ziyotech.net" className="hover:text-cyan-200 transition-colors">ziyotech.net</a>
+              <a href="mailto:doniyormak.1@gmail.com" className="text-cyan-400 font-mono text-[11px] hover:text-cyan-200 transition-colors">contact@ziyotech.net</a>
             </div>
           </div>
 
@@ -139,18 +139,18 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <div className="text-slate-400">
-            © {new Date().getFullYear()} ZiyoTech. {t.footer.allRightsReserved}
+            © 2021 ZiyoTech. All rights reserved.
           </div>
 
           <div className="flex items-center gap-6">
             <button
-              onClick={() => setLegalType('privacy')}
+              onClick={() => onNavigate('privacy-policy')}
               className="text-slate-400 hover:text-white transition-colors"
             >
               {t.footer.privacyPolicy}
             </button>
             <button
-              onClick={() => setLegalType('terms')}
+              onClick={() => onNavigate('terms-of-service')}
               className="text-slate-400 hover:text-white transition-colors"
             >
               {t.footer.termsOfService}
@@ -160,7 +160,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
       </div>
 
-      {legalType && <LegalModal type={legalType} onClose={() => setLegalType(null)} />}
     </footer>
   );
 };

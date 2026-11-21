@@ -7,6 +7,55 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
+/* Match the side margins revealed by containing the portrait robot video in a square avatar. */
+.assistant-video-avatar {
+  background: linear-gradient(
+    180deg,
+    #0c0e12 0%,
+    #0d1114 12.5%,
+    #101418 25%,
+    #0e1417 37.5%,
+    #13181c 50%,
+    #080c10 62.5%,
+    #10181b 75%,
+    #1e2c37 87.5%,
+    #26303b 100%
+  );
+}
+
+@keyframes assistant-availability-color {
+  0%, 100% { background-color: #22c55e; }
+  50% { background-color: #14532d; }
+}
+
+@keyframes assistant-availability-halo {
+  0% { opacity: 0.42; transform: scale(1); }
+  100% { opacity: 0; transform: scale(2.25); }
+}
+
+.assistant-availability-dot {
+  animation: assistant-availability-color 2s ease-in-out infinite;
+}
+
+.assistant-availability-halo {
+  animation: assistant-availability-halo 2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-availability-dot,
+  .assistant-availability-halo {
+    animation: none;
+  }
+
+  .assistant-availability-dot {
+    background-color: #22c55e;
+  }
+
+  .assistant-availability-halo {
+    display: none;
+  }
+}
+
 :root {
   color-scheme: dark light;
   --app-bg: #080C14;
@@ -307,4 +356,155 @@ html.light svg:not(.brand-mark-svg) g {
 html.light .lucide[fill="currentColor"],
 html.light svg:not(.brand-mark-svg)[fill="currentColor"] {
   fill: currentColor !important;
+}
+
+/* Light-theme contrast repairs for the shared Tailwind utility-based UI. */
+html.light {
+  --border: #cbd5e1;
+}
+
+/* Dark gradient panels are converted to light surfaces along with their text. */
+html.light [class*="from-[#"],
+html.light [class*="from-slate-800"],
+html.light [class*="from-slate-900"],
+html.light [class*="from-slate-950"],
+html.light [class*="from-gray-800"],
+html.light [class*="from-gray-900"],
+html.light [class*="from-zinc-800"],
+html.light [class*="from-zinc-900"],
+html.light [class*="from-blue-950"],
+html.light [class*="from-indigo-950"],
+html.light [class*="from-cyan-950"] {
+  background-color: #fff !important;
+  background-image: linear-gradient(135deg, #fff, #f1f5f9) !important;
+}
+
+html.light [class*="from-[#"][class*="bg-clip-text"] {
+  background-color: transparent !important;
+  background-image: linear-gradient(90deg, #1d4ed8, #0369a1) !important;
+}
+
+html.light [class*="bg-clip-text"] {
+  background-image: linear-gradient(90deg, #1d4ed8, #0369a1) !important;
+}
+
+/* Keep contrast on gradient and solid primary actions after global text mapping. */
+html.light [class*="bg-gradient-to-"].text-white,
+html.light [class*="bg-linear-to-"].text-white {
+  background-color: #1d4ed8 !important;
+  background-image: linear-gradient(90deg, #1d4ed8, #0369a1) !important;
+  color: #fff !important;
+}
+
+html.light [class*="bg-gradient-to-"] [class*="text-white"],
+html.light [class*="bg-linear-to-"] [class*="text-white"] {
+  color: #fff !important;
+}
+
+html.light [class~="bg-blue-600"][class~="text-white"],
+html.light [class~="bg-blue-500"][class~="text-white"],
+html.light [class~="bg-blue-600/90"][class~="text-white"],
+html.light [class~="bg-indigo-600"][class~="text-white"],
+html.light [class~="bg-cyan-600"][class~="text-white"],
+html.light [class~="bg-cyan-500"][class~="text-white"],
+html.light [class~="bg-emerald-600"][class~="text-white"],
+html.light [class~="bg-red-600"][class~="text-white"] {
+  background-color: #1d4ed8 !important;
+  background-image: none !important;
+  color: #fff !important;
+}
+
+/* Preserve a dark translucent backdrop instead of turning modal overlays white. */
+html.light [class*="bg-black/"] {
+  background-color: rgba(15, 23, 42, 0.58) !important;
+}
+
+html.light [class*="bg-black/"][class*="text-white"],
+html.light [class*="bg-black/"] [class*="text-white"] {
+  color: #fff !important;
+}
+
+/* Give semantic status colors enough contrast on light surfaces. */
+html.light [class*="text-emerald-"],
+html.light [class*="text-green-"] {
+  color: #047857 !important;
+}
+
+html.light [class*="text-red-"],
+html.light [class*="text-rose-"] {
+  color: #b91c1c !important;
+}
+
+html.light [class*="text-amber-"],
+html.light [class*="text-yellow-"] {
+  color: #92400e !important;
+}
+
+html.light [class*="text-purple-"],
+html.light [class*="text-violet-"] {
+  color: #6d28d9 !important;
+}
+
+html.light [class*="bg-red-950/"],
+html.light [class*="bg-rose-950/"],
+html.light [class*="bg-red-900/"] {
+  background-color: #fee2e2 !important;
+}
+
+html.light [class*="bg-emerald-950/"],
+html.light [class*="bg-green-950/"] {
+  background-color: #d1fae5 !important;
+}
+
+html.light [class*="bg-amber-950/"],
+html.light [class*="bg-yellow-950/"] {
+  background-color: #fef3c7 !important;
+}
+
+/* Make form controls, placeholders, focus, and hover states consistently visible. */
+html.light input:not([type="checkbox"]):not([type="radio"]),
+html.light select,
+html.light textarea {
+  background-color: #fff !important;
+  color: #1e293b !important;
+  border-color: #94a3b8 !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1;
+}
+
+html.light [class*="hover:bg-slate-"]:hover,
+html.light [class*="hover:bg-gray-"]:hover,
+html.light [class*="hover:bg-white/"]:hover {
+  background-color: #e2e8f0 !important;
+}
+
+html.light [class*="hover:text-cyan-"]:hover,
+html.light [class*="hover:text-blue-"]:hover,
+html.light [class*="hover:text-indigo-"]:hover {
+  color: #0369a1 !important;
+}
+
+html.light [class*="border-blue-"],
+html.light [class*="border-cyan-"],
+html.light [class*="border-indigo-"] {
+  border-color: #93c5fd !important;
+}
+
+html.light [class*="border-red-"],
+html.light [class*="border-rose-"] {
+  border-color: #fca5a5 !important;
+}
+
+html.light [class*="border-emerald-"],
+html.light [class*="border-green-"] {
+  border-color: #86efac !important;
+}
+
+html.light :focus-visible {
+  outline: 2px solid #1d4ed8 !important;
+  outline-offset: 2px;
 }

@@ -55,6 +55,7 @@ interface PlatformContextType {
   orders: OrderItem[];
   updateOrderStatus: (orderId: string, status: OrderItem['status']) => void;
   projectRequests: ProjectRequest[];
+  projectRequestsLoadStatus: 'loading' | 'ready' | 'error';
   addProjectRequest: (request: Omit<ProjectRequest, 'id' | 'createdAt' | 'status'>) => void;
   updateProjectRequestStatus: (requestId: string, status: ProjectRequest['status']) => void;
   aiConfig: AiAgentConfig;
@@ -119,6 +120,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [activeConversationId, setActiveConversationId] = useState<string>('');
   const [orders, setOrders] = useState<OrderItem[]>(initialOrders);
   const [projectRequests, setProjectRequests] = useState<ProjectRequest[]>(initialProjectRequests);
+  const [projectRequestsLoadStatus, setProjectRequestsLoadStatus] = useState<'loading' | 'ready' | 'error'>(db ? 'loading' : 'ready');
   const [knowledgeDocs, setKnowledgeDocs] = useState<KnowledgeDoc[]>(initialKnowledge);
 
   useEffect(() => {
@@ -137,8 +139,10 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         );
 
         setProjectRequests(firebaseRequests);
+        setProjectRequestsLoadStatus('ready');
       },
       (error) => {
+        setProjectRequestsLoadStatus('error');
         console.warn('Failed to load project requests from Firestore:', error);
       }
     );
@@ -310,6 +314,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         orders,
         updateOrderStatus,
         projectRequests,
+        projectRequestsLoadStatus,
         addProjectRequest,
         updateProjectRequestStatus,
         aiConfig,

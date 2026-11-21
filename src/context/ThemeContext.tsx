@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useLayoutEffect } from 'react';
 
 export type Theme = 'dark' | 'light';
 
@@ -19,7 +19,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return 'dark'; // High-tech obsidian sapphire default
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.documentElement;
     const isDark = theme === 'dark';
 

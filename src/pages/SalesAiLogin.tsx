@@ -5,8 +5,8 @@ interface SalesAiLoginProps {
 }
 
 export default function SalesAiLogin({ onLogin }: SalesAiLoginProps) {
-  const [email, setEmail] = useState('admin@ziyotech.com');
-  const [password, setPassword] = useState('Aslan1995!');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -16,10 +16,12 @@ export default function SalesAiLogin({ onLogin }: SalesAiLoginProps) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:4000/api/admin/login', {
+      const apiBase = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
+      const response = await fetch(`${apiBase}/api/admin/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
@@ -45,8 +47,8 @@ export default function SalesAiLogin({ onLogin }: SalesAiLoginProps) {
         <p style={{ color: '#9bb5d2', marginBottom: 28 }}>Secure access to the sales AI dashboard.</p>
 
         <div style={{ display: 'grid', gap: 16 }}>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" style={inputStyle} />
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" style={inputStyle} />
+          <input autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Admin ID" aria-label="Admin ID" required style={inputStyle} />
+          <input autoComplete="current-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" aria-label="Password" required style={inputStyle} />
 
           {error ? <div style={{ color: '#fca5a5', fontSize: 14 }}>{error}</div> : null}
 

@@ -56,7 +56,7 @@ export const ContactSection: React.FC = () => {
   };
 
   return (
-    <section id="contact" className="py-14 sm:py-20 lg:py-28 bg-[#080C14]/95 relative">
+    <section id="contact" className="pt-0 pb-14 sm:pb-20 lg:pb-28 bg-[#080C14]/95 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="max-w-4xl mx-auto rounded-2xl sm:rounded-3xl bg-slate-900/90 border border-slate-800 p-5 sm:p-10 lg:p-12 shadow-2xl relative overflow-hidden">

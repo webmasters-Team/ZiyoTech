@@ -562,13 +562,15 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
             {websitePricingTiers.map((tier, index) => (
               <div
                 key={tier.name}
-                className={`relative flex h-full flex-col rounded-3xl p-6 sm:p-8 bg-linear-to-br from-[#0B1528] via-[#08101E] to-[#040813] border-2 transition-all duration-300 ${
-                  tier.popular ? 'border-blue-500/40 shadow-[0_18px_40px_rgba(59,130,246,0.16)]' : 'border-slate-800/80 shadow-[0_18px_40px_rgba(15,23,42,0.12)]'
+                className={`relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border p-5 sm:p-6 lg:p-7 transition-colors duration-200 ${
+                  tier.popular
+                    ? 'border-blue-400/40 bg-gradient-to-b from-blue-950/35 to-[#0B1220] shadow-[0_16px_32px_rgba(37,99,235,0.10)]'
+                    : 'border-slate-700/70 bg-[#0B1220] shadow-[0_12px_26px_rgba(2,6,23,0.16)] hover:border-slate-600'
                 }`}
               >
                 <div className="absolute top-4 right-4">
                   <span
-                    className={`text-[10px] font-semibold uppercase tracking-[0.18em] rounded-full py-1.5 px-3 ${
+                    className={`text-[10px] font-semibold uppercase tracking-[0.14em] rounded-md py-1 px-2.5 ${
                       tier.popular
                         ? 'bg-blue-950 text-blue-200 border border-blue-700/70'
                         : 'bg-white/5 text-slate-300 border border-slate-700/80'
@@ -578,38 +580,36 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
                   </span>
                 </div>
 
-                <div className="flex flex-col flex-1 pt-8">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
-                    <div className="sm:min-w-30">
-                      <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-cyan-400 block mb-2">
-                        {t.services.pricingPlan}
-                      </span>
-                      <h3 className="text-[1.5rem] sm:text-[1.75rem] font-semibold text-white leading-tight tracking-[-0.03em]">
-                        {tier.name}
-                      </h3>
+                <div className="flex flex-1 flex-col pt-8">
+                  <div className="mb-4">
+                    <div className="mb-2 text-[10px] font-mono uppercase tracking-[0.18em] text-cyan-400">
+                      {t.services.pricingPlan}
                     </div>
-
-                    <div className="flex items-end gap-2">
-                      <span className="text-3xl sm:text-4xl font-black tracking-[-0.06em] text-white leading-none">
-                        {tier.price}
-                      </span>
-                      <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-400 pb-1.5">
-                        {t.services.perMonth}
-                      </span>
-                    </div>
+                    <h3 className="max-w-full break-words text-xl sm:text-2xl font-semibold text-white leading-snug tracking-[-0.025em]">
+                      {tier.name}
+                    </h3>
                   </div>
 
-                  <p className="text-sm sm:text-base text-slate-300 leading-relaxed mb-6">
+                  <div className="mb-4 flex items-baseline gap-2">
+                    <span className="text-4xl sm:text-[2.6rem] font-bold tracking-[-0.055em] text-white leading-none">
+                      {tier.price}
+                    </span>
+                    <span className="text-[10px] font-mono uppercase tracking-[0.14em] text-slate-400">
+                      {t.services.perMonth}
+                    </span>
+                  </div>
+
+                  <p className="text-sm text-slate-300 leading-6 mb-5">
                     {tier.description}
                   </p>
 
-                  <div className="space-y-3 mb-6">
+                  <div className="space-y-2.5 mb-5">
                     {tier.features.map((feat, i) => (
-                      <div key={i} className="flex items-center gap-3 text-xs sm:text-sm text-slate-200 leading-relaxed">
+                      <div key={i} className="flex items-start gap-2.5 text-[13px] text-slate-200 leading-5">
                         {feat.value ? (
-                          <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                          <CheckCircle2 className="w-4 h-4 text-cyan-400/90 shrink-0 mt-0.5" />
                         ) : (
-                          <div className="w-4 h-4 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                          <div className="w-4 h-4 rounded-full bg-white/5 flex items-center justify-center shrink-0 mt-0.5">
                             <X className="w-2.5 h-2.5 text-slate-400" />
                           </div>
                         )}
@@ -619,17 +619,17 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
                   </div>
                 </div>
 
-                <div className="mt-auto flex flex-col sm:flex-row gap-4">
+                <div className="mt-auto flex flex-col xl:flex-row gap-2.5 border-t border-slate-800/80 pt-5">
                   <button
                     onClick={() => onNavigate('contact')}
-                    className="flex-1 px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold text-white bg-linear-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-xl shadow-blue-600/30 transition-all"
+                    className="min-h-11 flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-white bg-blue-600/90 hover:bg-blue-500 shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
                   >
                     {t.services.getStarted}
                   </button>
 
                   <button
                     onClick={() => handleServiceQuote(flagshipService)}
-                    className="flex-1 px-4 py-2.5 rounded-full text-xs sm:text-sm font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/8 border border-white/10 transition-all"
+                    className="min-h-11 flex-1 rounded-lg border border-slate-700 bg-slate-900/70 px-4 py-2 text-sm font-medium text-slate-300 hover:border-slate-500 hover:bg-slate-800 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
                   >
                     {t.services.requestConsultation}
                   </button>
