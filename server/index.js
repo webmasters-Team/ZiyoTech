@@ -1088,6 +1088,8 @@ app.delete('/api/businesses/:businessId/products/:productId', requireAdminAuth, 
   return res.json({ success: true, deleted: productId });
 });
 
-app.listen(PORT, () => {
-  console.log(`ZiyoTech Sales AI backend running on http://localhost:${PORT}`);
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`ZiyoTech Sales AI backend running on port ${PORT}`);
 });
+
