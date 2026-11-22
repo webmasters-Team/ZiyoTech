@@ -37,7 +37,7 @@ import {
 import { ProjectRequestsView } from './ProjectRequestsView';
 import { AiSalesAgentDashboard } from './AiSalesAgentDashboard';
 
-const VISITOR_ANALYTICS_API_BASE = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
+const VISITOR_ANALYTICS_API_BASE = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
 
 interface PlatformLayoutProps {
   onBackToSite: () => void;

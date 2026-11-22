@@ -3,7 +3,7 @@ import { Activity, ChevronLeft, ChevronRight, Clock3, Globe2, Monitor, RefreshCw
 import { useLanguage } from '../../context/LanguageContext';
 import { AnalyticsCharts, type AnalyticsChartsData } from './AnalyticsCharts';
 
-const API_BASE = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
+const API_BASE = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
 type Section = 'overview' | 'guests' | 'users';
 type Overview = {
   totals: {

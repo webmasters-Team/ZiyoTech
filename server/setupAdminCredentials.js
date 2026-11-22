@@ -1,6 +1,6 @@
 import readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
-import { getDb } from './db.js';
+import { closeDatabase, initializeDatabase } from './db.js';
 import { getActiveAdminAccounts, getAdminCredentialState, hashAdminPassword, saveAdminCredential } from './adminAuthService.js';
 
 function hiddenPrompt(label) {
@@ -38,6 +38,7 @@ function hiddenPrompt(label) {
 }
 
 async function main() {
+  await initializeDatabase();
   const args = process.argv.slice(2);
   const usernameIndex = args.indexOf('--username');
   const username = usernameIndex >= 0 ? args[usernameIndex + 1] : '';
@@ -45,7 +46,7 @@ async function main() {
   const requestedAccountId = accountIdIndex >= 0 ? args[accountIdIndex + 1] : '';
   if (!username || !/^[A-Za-z0-9._-]{3,80}$/.test(username)) throw new Error('Usage: npm run setup:admin-credentials -- --username <admin-id> [--account-id <existing-admin-uid>]');
 
-  const admins = getActiveAdminAccounts();
+  const admins = await getActiveAdminAccounts();
   const account = requestedAccountId
     ? admins.find((item) => item.id === requestedAccountId)
     : admins.length === 1 ? admins[0] : null;
@@ -53,7 +54,7 @@ async function main() {
     ? 'No active SQLite administrator exists. This command does not create or promote accounts.'
     : 'Select one existing admin explicitly with --account-id <uid>. This command does not create or promote accounts.');
 
-  const existing = getAdminCredentialState(account.id);
+  const existing = await getAdminCredentialState(account.id);
   let replace = false;
   if (existing) {
     const prompt = readline.createInterface({ input: stdin, output: stdout });
@@ -70,7 +71,7 @@ async function main() {
   if (password.toLowerCase() === username.toLowerCase()) throw new Error('The password must differ from the Admin ID. No database changes were made.');
 
   const { passwordSalt, passwordHash } = await hashAdminPassword(password);
-  saveAdminCredential({ accountId: account.id, username, passwordSalt, passwordHash, replace });
+  await saveAdminCredential({ accountId: account.id, username, passwordSalt, passwordHash, replace });
   console.log('Administrator credentials saved for the existing active admin account. No account role or profile was changed.');
 }
 
@@ -81,5 +82,4 @@ try {
   process.exitCode = 1;
 }
 
-// Ensure the database handle is initialized and closed for one-shot CLI use.
-getDb().close();
+await closeDatabase();

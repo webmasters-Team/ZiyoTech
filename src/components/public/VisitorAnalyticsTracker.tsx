@@ -3,7 +3,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 type ConsentChoice = 'accepted' | 'rejected' | null;
 
-const API_BASE = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
+const API_BASE = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
 const CONSENT_KEY = 'ziyo-visitor-analytics-consent';
 const HEARTBEAT_MS = 30_000;
 const IDLE_MS = 5 * 60_000;

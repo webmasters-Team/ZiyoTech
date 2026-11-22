@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { getDb } from './db.js';
+import { getDb, isUniqueConstraintError } from './db.js';
 
 const db = getDb();
 const FIREBASE_CERTS_URL = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
@@ -162,8 +162,8 @@ export async function verifyFirebaseIdToken(token, {
   return identity;
 }
 
-export function syncFirebaseProfile(identity) {
-  const existing = db.prepare('SELECT account_status FROM user_accounts WHERE id = ?').get(identity.uid);
+export async function syncFirebaseProfile(identity) {
+  const existing = await db.prepare('SELECT account_status FROM user_accounts WHERE id = ?').get(identity.uid);
   if (existing && existing.account_status !== 'ACTIVE') {
     const error = new Error('This account is disabled. Contact ZiyoTech support.');
     error.statusCode = 403;
@@ -171,22 +171,19 @@ export function syncFirebaseProfile(identity) {
   }
 
   try {
-    db.prepare(`
+    await db.prepare(`
       INSERT INTO user_accounts (id, email, full_name, photo_url, auth_provider, email_verified, role)
-      VALUES (@uid, @email, @displayName, @photoUrl, @provider, @emailVerified, 'user')
+      VALUES (?, ?, ?, ?, ?, ?, 'user')
       ON CONFLICT(id) DO UPDATE SET
         email = excluded.email,
         full_name = CASE WHEN user_accounts.full_name = '' THEN excluded.full_name ELSE user_accounts.full_name END,
-        photo_url = CASE WHEN excluded.auth_provider = 'google.com' AND @photoUrlResolved = 1 THEN excluded.photo_url ELSE user_accounts.photo_url END,
+        photo_url = CASE WHEN excluded.auth_provider = 'google.com' AND ? = 1 THEN excluded.photo_url ELSE user_accounts.photo_url END,
         auth_provider = excluded.auth_provider,
         email_verified = excluded.email_verified
-    `).run({
-      ...identity,
-      emailVerified: identity.emailVerified ? 1 : 0,
-      photoUrlResolved: identity.photoUrlResolved ? 1 : 0,
-    });
+    `).run(identity.uid, identity.email, identity.displayName, identity.photoUrl, identity.provider,
+      identity.emailVerified ? 1 : 0, identity.photoUrlResolved ? 1 : 0);
   } catch (error) {
-    if (error?.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+    if (isUniqueConstraintError(error)) {
       const conflict = new Error('An account already uses this email with a different sign-in method. Sign in with that method; accounts are not merged automatically.');
       conflict.statusCode = 409;
       throw conflict;
@@ -194,11 +191,11 @@ export function syncFirebaseProfile(identity) {
     throw error;
   }
 
-  return safeProfile(db.prepare('SELECT * FROM user_accounts WHERE id = ?').get(identity.uid));
+  return safeProfile(await db.prepare('SELECT * FROM user_accounts WHERE id = ?').get(identity.uid));
 }
 
-export function createUserSession(uid) {
-  const user = db.prepare('SELECT * FROM user_accounts WHERE id = ?').get(uid);
+export async function createUserSession(uid) {
+  const user = await db.prepare('SELECT * FROM user_accounts WHERE id = ?').get(uid);
   if (!user || user.account_status !== 'ACTIVE') {
     const error = new Error('This account is unavailable.');
     error.statusCode = 403;
@@ -214,26 +211,26 @@ export function createUserSession(uid) {
   const token = crypto.randomBytes(32).toString('hex');
   const csrfToken = crypto.randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
-  const create = db.transaction(() => {
-    db.prepare('DELETE FROM user_sessions WHERE expires_at <= ?').run(new Date().toISOString());
-    db.prepare('INSERT INTO user_sessions (token_hash, user_id, csrf_hash, expires_at) VALUES (?, ?, ?, ?)')
+  const create = db.transaction(async () => {
+    await db.prepare('DELETE FROM user_sessions WHERE expires_at <= ?').run(new Date().toISOString());
+    await db.prepare('INSERT INTO user_sessions (token_hash, user_id, csrf_hash, expires_at) VALUES (?, ?, ?, ?)')
       .run(hash(token), uid, hash(csrfToken), expiresAt);
-    db.prepare('UPDATE user_accounts SET last_login_at = ? WHERE id = ?').run(new Date().toISOString(), uid);
+    await db.prepare('UPDATE user_accounts SET last_login_at = ? WHERE id = ?').run(new Date().toISOString(), uid);
   });
-  create();
+  await create();
   return { token, csrfToken, expiresAt, user: safeProfile({ ...user, last_login_at: new Date().toISOString() }) };
 }
 
-export function getUserSession(token) {
+export async function getUserSession(token) {
   if (typeof token !== 'string' || !/^[a-f0-9]{64}$/i.test(token)) return null;
-  const session = db.prepare(`
+  const session = await db.prepare(`
     SELECT s.token_hash, s.csrf_hash, s.expires_at, u.*
     FROM user_sessions s JOIN user_accounts u ON u.id = s.user_id
     WHERE s.token_hash = ?
   `).get(hash(token));
   if (!session) return null;
   if (session.expires_at <= new Date().toISOString() || session.account_status !== 'ACTIVE' || !session.email_verified) {
-    db.prepare('DELETE FROM user_sessions WHERE token_hash = ?').run(session.token_hash);
+    await db.prepare('DELETE FROM user_sessions WHERE token_hash = ?').run(session.token_hash);
     return null;
   }
   return { user: safeProfile(session), csrfHash: session.csrf_hash, tokenHash: session.token_hash };
@@ -246,24 +243,24 @@ export function verifyCsrfToken(session, suppliedToken) {
   return expected.length === supplied.length && crypto.timingSafeEqual(expected, supplied);
 }
 
-export function updateUserProfile(uid, { displayName }) {
+export async function updateUserProfile(uid, { displayName }) {
   const name = typeof displayName === 'string' ? displayName.trim() : '';
   if (!name || name.length > 100) {
     const error = new Error('Display name must contain between 1 and 100 characters.');
     error.statusCode = 400;
     throw error;
   }
-  db.prepare('UPDATE user_accounts SET full_name = ? WHERE id = ? AND account_status = \'ACTIVE\'').run(name, uid);
-  return safeProfile(db.prepare('SELECT * FROM user_accounts WHERE id = ?').get(uid));
+  await db.prepare('UPDATE user_accounts SET full_name = ? WHERE id = ? AND account_status = \'ACTIVE\'').run(name, uid);
+  return safeProfile(await db.prepare('SELECT * FROM user_accounts WHERE id = ?').get(uid));
 }
 
-export function isProvisionedAdministrator(uid) {
+export async function isProvisionedAdministrator(uid) {
   if (typeof uid !== 'string' || !uid) return false;
-  return db.prepare('SELECT 1 FROM user_accounts WHERE id = ? AND role = \'admin\' AND account_status = \'ACTIVE\'').get(uid) !== undefined;
+  return (await db.prepare('SELECT 1 FROM user_accounts WHERE id = ? AND role = \'admin\' AND account_status = \'ACTIVE\'').get(uid)) !== undefined;
 }
 
-export function revokeUserSession(token) {
+export async function revokeUserSession(token) {
   if (typeof token === 'string' && /^[a-f0-9]{64}$/i.test(token)) {
-    db.prepare('DELETE FROM user_sessions WHERE token_hash = ?').run(hash(token));
+    await db.prepare('DELETE FROM user_sessions WHERE token_hash = ?').run(hash(token));
   }
 }

@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+.local-backups/
+/prod-ca-2021.crt
+server/ziyo_sales_ai.db*
+server/backups/*.db
+server/backups/*.db-wal
+server/backups/*.db-shm

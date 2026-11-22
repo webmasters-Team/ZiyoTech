@@ -34,58 +34,58 @@ export function normalizeAnalyticsPage(value) {
   return path;
 }
 
-export function cleanupAnalyticsData(now = Date.now()) {
+export async function cleanupAnalyticsData(now = Date.now()) {
   const cutoff = new Date(now - ANALYTICS_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
   const aggregateCutoff = new Date(now - AGGREGATE_VISIT_RETENTION_DAYS * 24 * 60 * 60 * 1000);
   aggregateCutoff.setUTCMinutes(0, 0, 0);
   const aggregateCutoffIso = aggregateCutoff.toISOString();
-  const cleanup = db.transaction(() => {
-    db.prepare(`DELETE FROM analytics_page_views WHERE session_id IN
+  const cleanup = db.transaction(async () => {
+    await db.prepare(`DELETE FROM analytics_page_views WHERE session_id IN
       (SELECT session_id FROM analytics_sessions WHERE last_seen_at < ?)`).run(cutoff);
-    db.prepare(`DELETE FROM analytics_sessions WHERE last_seen_at < ?`).run(cutoff);
-    db.prepare(`DELETE FROM analytics_visitors WHERE last_seen_at < ? AND NOT EXISTS (
+    await db.prepare(`DELETE FROM analytics_sessions WHERE last_seen_at < ?`).run(cutoff);
+    await db.prepare(`DELETE FROM analytics_visitors WHERE last_seen_at < ? AND NOT EXISTS (
       SELECT 1 FROM analytics_sessions s WHERE s.visitor_id = analytics_visitors.visitor_id
     )`).run(cutoff);
-    db.prepare('DELETE FROM analytics_aggregate_visit_hours WHERE hour_utc < ?').run(aggregateCutoffIso);
+    await db.prepare('DELETE FROM analytics_aggregate_visit_hours WHERE hour_utc < ?').run(aggregateCutoffIso);
   });
-  cleanup();
+  await cleanup();
 }
 
 // Store only a UTC hourly scalar. Do not accept or persist request identifiers,
 // browser details, paths, cookies, or network addresses for this counter.
-export function recordAutomaticAggregateVisit(now = Date.now()) {
+export async function recordAutomaticAggregateVisit(now = Date.now()) {
   const hourUtc = `${new Date(now).toISOString().slice(0, 13)}:00:00.000Z`;
-  db.prepare(`INSERT INTO analytics_aggregate_visit_hours (hour_utc, visit_count)
+  await db.prepare(`INSERT INTO analytics_aggregate_visit_hours (hour_utc, visit_count)
     VALUES (?, 1)
     ON CONFLICT(hour_utc) DO UPDATE SET
       visit_count = analytics_aggregate_visit_hours.visit_count + 1`).run(hourUtc);
 }
 
-export function expireInactiveAnalyticsSessions(now = Date.now()) {
+export async function expireInactiveAnalyticsSessions(now = Date.now()) {
   const activityCutoff = new Date(now - ANALYTICS_SESSION_TIMEOUT_MS).toISOString();
-  const expired = db.prepare(`SELECT session_id, COALESCE(last_activity_at, started_at) AS activity_at
+  const expired = await db.prepare(`SELECT session_id, COALESCE(last_activity_at, started_at) AS activity_at
     FROM analytics_sessions WHERE ended_at IS NULL AND COALESCE(last_activity_at, started_at) <= ?`).all(activityCutoff);
   if (!expired.length) return 0;
   const markEnded = db.prepare('UPDATE analytics_sessions SET ended_at = ? WHERE session_id = ? AND ended_at IS NULL');
-  const expire = db.transaction(() => {
+  const expire = db.transaction(async () => {
     for (const session of expired) {
       const endedAt = new Date(Date.parse(session.activity_at) + ANALYTICS_SESSION_TIMEOUT_MS).toISOString();
-      markEnded.run(endedAt, session.session_id);
+      await markEnded.run(endedAt, session.session_id);
     }
   });
-  expire();
+  await expire();
   return expired.length;
 }
 
-export function startAnalyticsSession({ visitorId, sessionId, userId = null, device, browser, referralSource, visible = true, active = true }) {
+export async function startAnalyticsSession({ visitorId, sessionId, userId = null, device, browser, referralSource, visible = true, active = true }) {
   const now = isoNow();
   const knownVisitorId = validId(visitorId) ? visitorId : crypto.randomBytes(24).toString('hex');
   let currentSessionId = validId(sessionId) ? sessionId : null;
   let prior = currentSessionId
-    ? db.prepare('SELECT * FROM analytics_sessions WHERE session_id = ?').get(currentSessionId)
+    ? await db.prepare('SELECT * FROM analytics_sessions WHERE session_id = ?').get(currentSessionId)
     : null;
   if (!prior && validId(visitorId)) {
-    prior = db.prepare(`SELECT * FROM analytics_sessions WHERE visitor_id = ? AND user_id IS ? AND ended_at IS NULL
+    prior = await db.prepare(`SELECT * FROM analytics_sessions WHERE visitor_id = ? AND user_id IS NOT DISTINCT FROM ? AND ended_at IS NULL
       ORDER BY started_at DESC LIMIT 1`).get(knownVisitorId, userId);
     if (prior && Date.now() - Date.parse(prior.last_activity_at || prior.started_at) <= ANALYTICS_SESSION_TIMEOUT_MS) currentSessionId = prior.session_id;
     else prior = null;
@@ -96,15 +96,17 @@ export function startAnalyticsSession({ visitorId, sessionId, userId = null, dev
     const endedAt = expired && prior.last_activity_at
       ? new Date(Date.parse(prior.last_activity_at) + ANALYTICS_SESSION_TIMEOUT_MS).toISOString()
       : expired ? new Date(Date.parse(prior.started_at) + ANALYTICS_SESSION_TIMEOUT_MS).toISOString() : now;
-    db.prepare('UPDATE analytics_sessions SET ended_at = COALESCE(ended_at, ?) WHERE session_id = ?').run(endedAt, currentSessionId);
+    await db.prepare('UPDATE analytics_sessions SET ended_at = COALESCE(ended_at, ?) WHERE session_id = ?').run(endedAt, currentSessionId);
     currentSessionId = null;
   }
 
-  const ensureVisitor = db.transaction(() => {
-    const existing = db.prepare('SELECT visitor_id FROM analytics_visitors WHERE visitor_id = ?').get(knownVisitorId);
+  const ensureVisitor = db.transaction(async () => {
+    const existing = await db.prepare('SELECT visitor_id FROM analytics_visitors WHERE visitor_id = ?').get(knownVisitorId);
     if (!existing) {
-      const visitorNumber = (db.prepare('SELECT COALESCE(MAX(visitor_number), 0) + 1 AS next FROM analytics_visitors').get()).next;
-      db.prepare(`INSERT INTO analytics_visitors
+      let visitorNumber;
+      if (db.dialect === 'postgres') visitorNumber = (await db.prepare("SELECT nextval('analytics_visitor_number_seq') AS next").get()).next;
+      else visitorNumber = (await db.prepare('SELECT COALESCE(MAX(visitor_number), 0) + 1 AS next FROM analytics_visitors').get()).next;
+      await db.prepare(`INSERT INTO analytics_visitors
         (visitor_id, visitor_number, created_at, last_seen_at, device_category, browser_category, referral_source, country_code)
         VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`)
         .run(knownVisitorId, visitorNumber, now, now,
@@ -112,7 +114,7 @@ export function startAnalyticsSession({ visitorId, sessionId, userId = null, dev
           normalizeCategory(browser, ['chrome', 'safari', 'firefox', 'edge', 'other', 'unknown']),
           normalizeReferral(referralSource));
     } else {
-      db.prepare(`UPDATE analytics_visitors SET last_seen_at = ?, device_category = ?, browser_category = ?,
+      await db.prepare(`UPDATE analytics_visitors SET last_seen_at = ?, device_category = ?, browser_category = ?,
         referral_source = COALESCE(referral_source, ?) WHERE visitor_id = ?`)
         .run(now, normalizeCategory(device, ['desktop', 'mobile', 'tablet', 'unknown']),
           normalizeCategory(browser, ['chrome', 'safari', 'firefox', 'edge', 'other', 'unknown']),
@@ -120,18 +122,18 @@ export function startAnalyticsSession({ visitorId, sessionId, userId = null, dev
     }
     if (!currentSessionId) {
       currentSessionId = crypto.randomBytes(24).toString('hex');
-      db.prepare(`INSERT INTO analytics_sessions
+      await db.prepare(`INSERT INTO analytics_sessions
         (session_id, visitor_id, user_id, started_at, last_seen_at, last_heartbeat_at, last_activity_at, was_visible, was_active)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .run(currentSessionId, knownVisitorId, userId, now, now, now, active ? now : null, visible ? 1 : 0, active && visible ? 1 : 0);
     } else {
-      db.prepare(`UPDATE analytics_sessions SET last_seen_at = ?, last_heartbeat_at = ?,
+      await db.prepare(`UPDATE analytics_sessions SET last_seen_at = ?, last_heartbeat_at = ?,
         last_activity_at = CASE WHEN ? = 1 THEN ? ELSE last_activity_at END,
         was_visible = ?, was_active = ?, ended_at = NULL WHERE session_id = ?`)
         .run(now, now, active && visible ? 1 : 0, now, visible ? 1 : 0, active && visible ? 1 : 0, currentSessionId);
     }
   });
-  ensureVisitor();
+  await ensureVisitor();
   return { visitorId: knownVisitorId, sessionId: currentSessionId, resumed: Boolean(prior && currentSessionId) };
 }
 
@@ -144,34 +146,34 @@ function normalizeReferral(value) {
   } catch { return null; }
 }
 
-export function recordPageView({ sessionId, visitorId, eventId, pagePath }) {
+export async function recordPageView({ sessionId, visitorId, eventId, pagePath }) {
   if (!validId(sessionId) || !validId(visitorId) || !validEventId(eventId)) return false;
   const path = normalizeAnalyticsPage(pagePath);
   if (!path) return false;
-  const session = db.prepare('SELECT visitor_id, ended_at FROM analytics_sessions WHERE session_id = ?').get(sessionId);
+  const session = await db.prepare('SELECT visitor_id, ended_at FROM analytics_sessions WHERE session_id = ?').get(sessionId);
   if (!session || session.visitor_id !== visitorId || session.ended_at) return false;
-  const result = db.prepare(`INSERT OR IGNORE INTO analytics_page_views (event_id, session_id, page_path, occurred_at)
-    VALUES (?, ?, ?, ?)`).run(eventId, sessionId, path, isoNow());
+  const result = await db.prepare(`INSERT INTO analytics_page_views (event_id, session_id, page_path, occurred_at)
+    VALUES (?, ?, ?, ?) ON CONFLICT (event_id) DO NOTHING`).run(eventId, sessionId, path, isoNow());
   return result.changes === 1;
 }
 
-export function heartbeatAnalyticsSession({ sessionId, visitorId, userId = null, visible, active }) {
+export async function heartbeatAnalyticsSession({ sessionId, visitorId, userId = null, visible, active }) {
   if (!validId(sessionId) || !validId(visitorId)) return { accepted: false, rotate: false };
   const now = Date.now();
   const nowIso = new Date(now).toISOString();
-  const session = db.prepare('SELECT * FROM analytics_sessions WHERE session_id = ?').get(sessionId);
+  const session = await db.prepare('SELECT * FROM analytics_sessions WHERE session_id = ?').get(sessionId);
   if (!session || session.visitor_id !== visitorId || session.ended_at) return { accepted: false, rotate: true };
   const inactivityAnchor = Date.parse(session.last_activity_at || session.started_at);
   if (Number.isFinite(inactivityAnchor) && now - inactivityAnchor > ANALYTICS_SESSION_TIMEOUT_MS) {
-    db.prepare('UPDATE analytics_sessions SET ended_at = ? WHERE session_id = ?')
+    await db.prepare('UPDATE analytics_sessions SET ended_at = ? WHERE session_id = ?')
       .run(new Date(inactivityAnchor + ANALYTICS_SESSION_TIMEOUT_MS).toISOString(), sessionId);
     return { accepted: false, rotate: true };
   }
   if (session.user_id !== userId) {
     if (session.user_id === null && userId) {
-      db.prepare('UPDATE analytics_sessions SET user_id = ? WHERE session_id = ? AND user_id IS NULL').run(userId, sessionId);
+      await db.prepare('UPDATE analytics_sessions SET user_id = ? WHERE session_id = ? AND user_id IS NULL').run(userId, sessionId);
     } else {
-      db.prepare('UPDATE analytics_sessions SET ended_at = ? WHERE session_id = ?').run(new Date(now).toISOString(), sessionId);
+      await db.prepare('UPDATE analytics_sessions SET ended_at = ? WHERE session_id = ?').run(new Date(now).toISOString(), sessionId);
       return { accepted: false, rotate: true };
     }
   }
@@ -183,20 +185,21 @@ export function heartbeatAnalyticsSession({ sessionId, visitorId, userId = null,
     && gapMs > 0 && gapMs <= ANALYTICS_MAX_HEARTBEAT_GAP_SECONDS * 1000
     ? Math.floor(gapMs / 1000)
     : 0;
-  db.prepare(`UPDATE analytics_sessions SET active_seconds = active_seconds + ?, last_seen_at = ?, last_heartbeat_at = ?,
+  await db.prepare(`UPDATE analytics_sessions SET active_seconds = active_seconds + ?, last_seen_at = ?, last_heartbeat_at = ?,
     last_activity_at = CASE WHEN ? = 1 THEN ? ELSE last_activity_at END,
     was_visible = ?, was_active = ? WHERE session_id = ?`)
     .run(addSeconds, nowIso, nowIso, currentActive && currentVisible ? 1 : 0, nowIso,
       currentVisible ? 1 : 0, currentActive ? 1 : 0, sessionId);
-  db.prepare('UPDATE analytics_visitors SET last_seen_at = ? WHERE visitor_id = ?').run(nowIso, visitorId);
+  await db.prepare('UPDATE analytics_visitors SET last_seen_at = ? WHERE visitor_id = ?').run(nowIso, visitorId);
   return { accepted: true, activeSecondsAdded: addSeconds, rotate: gapMs > ANALYTICS_SESSION_TIMEOUT_MS };
 }
 
-export function endAnalyticsSession({ sessionId, visitorId }) {
+export async function endAnalyticsSession({ sessionId, visitorId }) {
   if (!validId(sessionId) || !validId(visitorId)) return false;
   const now = isoNow();
-  return db.prepare(`UPDATE analytics_sessions SET ended_at = COALESCE(ended_at, ?), last_seen_at = ?
-    WHERE session_id = ? AND visitor_id = ?`).run(now, now, sessionId, visitorId).changes > 0;
+  const result = await db.prepare(`UPDATE analytics_sessions SET ended_at = COALESCE(ended_at, ?), last_seen_at = ?
+    WHERE session_id = ? AND visitor_id = ?`).run(now, now, sessionId, visitorId);
+  return result.changes > 0;
 }
 
 function dateFilter(query, alias = 's') {
@@ -229,7 +232,7 @@ function floorToUtcHour(date) {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours())).toISOString();
 }
 
-function aggregateVisitCount(query, now = Date.now()) {
+async function aggregateVisitCount(query, now = Date.now()) {
   const range = ['24h', '7d', '30d'].includes(query.range) ? query.range : null;
   let from = null;
   let to = null;
@@ -251,7 +254,7 @@ function aggregateVisitCount(query, now = Date.now()) {
   if (from) { clauses.push('hour_utc >= ?'); params.push(from); }
   if (to || range) { clauses.push('hour_utc < ?'); params.push(to || nextHour); }
   const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
-  return db.prepare(`SELECT COALESCE(SUM(visit_count), 0) AS count FROM analytics_aggregate_visit_hours ${where}`).get(...params).count;
+  return (await db.prepare(`SELECT COALESCE(SUM(visit_count), 0) AS count FROM analytics_aggregate_visit_hours ${where}`).get(...params)).count;
 }
 
 function pageOptions(query) {
@@ -260,11 +263,11 @@ function pageOptions(query) {
   return { page, pageSize, offset: (page - 1) * pageSize };
 }
 
-export function getAnalyticsOverview(query = {}) {
+export async function getAnalyticsOverview(query = {}) {
   const filter = dateFilter(query);
-  const automaticGuestVisits = aggregateVisitCount(query);
+  const automaticGuestVisits = await aggregateVisitCount(query);
   const activeCutoff = new Date(Date.now() - ANALYTICS_ACTIVE_WINDOW_MS).toISOString();
-  const totals = db.prepare(`SELECT
+  const totals = await db.prepare(`SELECT
     COUNT(*) AS total_visits,
     COUNT(DISTINCT CASE WHEN user_id IS NULL THEN visitor_id END) + COUNT(DISTINCT user_id) AS total_unique_visitors,
     SUM(CASE WHEN user_id IS NULL THEN 1 ELSE 0 END) AS guest_visits,
@@ -276,13 +279,13 @@ export function getAnalyticsOverview(query = {}) {
     AVG(active_seconds) AS average_session_duration,
     COALESCE(SUM(active_seconds), 0) AS total_active_seconds
     FROM analytics_sessions s WHERE 1=1 ${filter.sql}`).get(activeCutoff, activeCutoff, ...filter.params);
-  const guests = db.prepare(`SELECT COUNT(DISTINCT s.visitor_id) AS count FROM analytics_sessions s
-    WHERE s.user_id IS NULL ${filter.sql}`).get(...filter.params).count;
-  const registered = db.prepare('SELECT COUNT(*) AS count FROM user_accounts').get().count;
-  const pageViews = db.prepare(`SELECT COUNT(*) AS count FROM analytics_page_views p JOIN analytics_sessions s USING(session_id)
-    WHERE 1=1 ${filter.sql.replaceAll('s.started_at', 's.started_at')}`).get(...filter.params).count;
-  const activeSessions = db.prepare(`SELECT COUNT(*) AS count FROM analytics_sessions s
-    WHERE ended_at IS NULL AND last_seen_at >= ? AND was_visible = 1 AND was_active = 1`).get(activeCutoff).count;
+  const guests = (await db.prepare(`SELECT COUNT(DISTINCT s.visitor_id) AS count FROM analytics_sessions s
+    WHERE s.user_id IS NULL ${filter.sql}`).get(...filter.params)).count;
+  const registered = (await db.prepare('SELECT COUNT(*) AS count FROM user_accounts').get()).count;
+  const pageViews = (await db.prepare(`SELECT COUNT(*) AS count FROM analytics_page_views p JOIN analytics_sessions s USING(session_id)
+    WHERE 1=1 ${filter.sql}`).get(...filter.params)).count;
+  const activeSessions = (await db.prepare(`SELECT COUNT(*) AS count FROM analytics_sessions s
+    WHERE ended_at IS NULL AND last_seen_at >= ? AND was_visible = 1 AND was_active = 1`).get(activeCutoff)).count;
   return {
     definitions: {
       automaticGuestVisits: 'Approximate UTC-hour aggregate of top-level public page entries. No visitor, session, browser, page-path, or network identifier is stored. Reloads and in-app route changes do not count; separate browser tabs or profiles cannot be deduplicated.',
@@ -335,17 +338,25 @@ function analyticsChartRange(query = {}) {
   return { range, valid: true, from: from.toISOString(), to: now.toISOString(), bucket: range === '24h' ? 'hour' : 'day' };
 }
 
-export function getAnalyticsCharts(query = {}) {
+export async function getAnalyticsCharts(query = {}) {
   const selection = analyticsChartRange(query);
   if (!selection.valid) return { range: selection.range, timeZone: 'UTC', error: 'Choose a valid custom date range no longer than 366 days.', traffic: [], hourlyActivity: [], topPages: [], visitorDistribution: { guests: 0, registeredUsers: 0 }, engagementTrend: [] };
 
-  const bucketFormat = selection.bucket === 'hour' ? '%Y-%m-%dT%H:00:00Z' : '%Y-%m-%d';
-  const trafficRows = db.prepare(`SELECT strftime(?, s.started_at) AS bucket,
+  const postgres = db.dialect === 'postgres';
+  const bucketSql = postgres
+    ? selection.bucket === 'hour'
+      ? `to_char(date_trunc('hour', s.started_at AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:00:00"Z"')`
+      : `to_char(s.started_at AT TIME ZONE 'UTC', 'YYYY-MM-DD')`
+    : 'strftime(?, s.started_at)';
+  const trafficSql = `SELECT ${bucketSql} AS bucket,
     SUM(CASE WHEN s.user_id IS NULL THEN 1 ELSE 0 END) AS guestVisits,
     SUM(CASE WHEN s.user_id IS NOT NULL THEN 1 ELSE 0 END) AS authenticatedVisits,
     COUNT(*) AS visits, ROUND(AVG(s.active_seconds), 0) AS averageActiveSeconds
     FROM analytics_sessions s WHERE s.started_at >= ? AND s.started_at < ?
-    GROUP BY bucket ORDER BY bucket`).all(bucketFormat, selection.from, selection.to);
+    GROUP BY bucket ORDER BY bucket`;
+  const trafficParams = postgres ? [selection.from, selection.to]
+    : [selection.bucket === 'hour' ? '%Y-%m-%dT%H:00:00Z' : '%Y-%m-%d', selection.from, selection.to];
+  const trafficRows = await db.prepare(trafficSql).all(...trafficParams);
   const trafficByBucket = new Map(trafficRows.map((row) => [row.bucket, row]));
   const bucketCount = selection.range === '24h' ? 24 : selection.range === '7d' ? 7 : selection.range === '30d' ? 30
     : Math.min(367, Math.max(1, Math.ceil((Date.parse(selection.to) - Date.parse(selection.from)) / (24 * 60 * 60 * 1000))));
@@ -363,16 +374,19 @@ export function getAnalyticsCharts(query = {}) {
     return { bucket: key, label: key.slice(5), guestVisits: row?.guestVisits || 0, authenticatedVisits: row?.authenticatedVisits || 0, averageActiveSeconds: row?.averageActiveSeconds || 0 };
   }) : [];
 
-  const hourlyRows = db.prepare(`SELECT CAST(strftime('%H', started_at) AS INTEGER) AS hour, COUNT(*) AS visits
+  const hourlyExpression = postgres
+    ? `EXTRACT(HOUR FROM started_at AT TIME ZONE 'UTC')::INTEGER`
+    : `CAST(strftime('%H', started_at) AS INTEGER)`;
+  const hourlyRows = await db.prepare(`SELECT ${hourlyExpression} AS hour, COUNT(*) AS visits
     FROM analytics_sessions WHERE started_at >= ? AND started_at < ? GROUP BY hour`).all(selection.from, selection.to);
   const hourlyByHour = new Map(hourlyRows.map((row) => [row.hour, row.visits]));
   const hourlyActivity = hourlyRows.length ? Array.from({ length: 24 }, (_, hour) => ({ hour, label: `${String(hour).padStart(2, '0')}:00`, visits: hourlyByHour.get(hour) || 0 })) : [];
 
-  const topPages = db.prepare(`SELECT p.page_path AS pagePath, COUNT(*) AS pageViews
+  const topPages = await db.prepare(`SELECT p.page_path AS pagePath, COUNT(*) AS pageViews
     FROM analytics_page_views p JOIN analytics_sessions s USING (session_id)
     WHERE p.occurred_at >= ? AND p.occurred_at < ?
-    GROUP BY p.page_path ORDER BY pageViews DESC, p.page_path ASC LIMIT 8`).all(selection.from, selection.to);
-  const visitorDistribution = db.prepare(`SELECT COUNT(DISTINCT CASE WHEN user_id IS NULL THEN visitor_id END) AS guests,
+    GROUP BY p.page_path ORDER BY COUNT(*) DESC, p.page_path ASC LIMIT 8`).all(selection.from, selection.to);
+  const visitorDistribution = await db.prepare(`SELECT COUNT(DISTINCT CASE WHEN user_id IS NULL THEN visitor_id END) AS guests,
     COUNT(DISTINCT user_id) AS registeredUsers FROM analytics_sessions
     WHERE started_at >= ? AND started_at < ?`).get(selection.from, selection.to);
 
@@ -387,16 +401,16 @@ export function getAnalyticsCharts(query = {}) {
   };
 }
 
-export function listGuestVisitors(query = {}) {
+export async function listGuestVisitors(query = {}) {
   const { page, pageSize, offset } = pageOptions(query);
   const filter = dateFilter(query);
   const search = String(query.search || '').trim().slice(0, 80);
   const searchNumber = Number.parseInt(search.replace(/^Guest\s*#?/i, ''), 10);
-  const searchClause = search ? (Number.isFinite(searchNumber) ? 'AND v.visitor_number = ?' : 'AND (v.device_category LIKE ? OR v.browser_category LIKE ?)') : '';
+  const searchClause = search ? (Number.isFinite(searchNumber) ? 'AND v.visitor_number = ?' : 'AND (LOWER(v.device_category) LIKE LOWER(?) OR LOWER(v.browser_category) LIKE LOWER(?))') : '';
   const searchParams = search ? (Number.isFinite(searchNumber) ? [searchNumber] : [`%${search}%`, `%${search}%`]) : [];
   const baseWhere = `WHERE EXISTS (SELECT 1 FROM analytics_sessions s WHERE s.visitor_id = v.visitor_id AND s.user_id IS NULL ${filter.sql}) ${searchClause}`;
-  const total = db.prepare(`SELECT COUNT(*) AS count FROM analytics_visitors v ${baseWhere}`).get(...filter.params, ...searchParams).count;
-  const rows = db.prepare(`SELECT v.visitor_number, MIN(s.started_at) AS first_visit_at, MAX(s.last_seen_at) AS last_seen_at,
+  const total = (await db.prepare(`SELECT COUNT(*) AS count FROM analytics_visitors v ${baseWhere}`).get(...filter.params, ...searchParams)).count;
+  const rows = await db.prepare(`SELECT v.visitor_number, MIN(s.started_at) AS first_visit_at, MAX(s.last_seen_at) AS last_seen_at,
     v.device_category, v.browser_category, v.referral_source, v.country_code,
     COUNT(s.session_id) AS visits, COALESCE(SUM(s.active_seconds), 0) AS total_active_seconds,
     ROUND(AVG(s.active_seconds), 0) AS average_visit_seconds,
@@ -406,21 +420,22 @@ export function listGuestVisitors(query = {}) {
     FROM analytics_visitors v JOIN analytics_sessions s ON s.visitor_id = v.visitor_id AND s.user_id IS NULL
     ${filter.sql} ${searchClause}
     GROUP BY v.visitor_id ORDER BY v.last_seen_at DESC LIMIT ? OFFSET ?`)
-    .all(new Date(Date.now() - ANALYTICS_ACTIVE_WINDOW_MS).toISOString(), ...filter.params, ...searchParams, pageSize, offset)
+    .all(new Date(Date.now() - ANALYTICS_ACTIVE_WINDOW_MS).toISOString(), ...filter.params, ...searchParams, pageSize, offset);
+  const items = rows
     .map((row) => ({ ...row, label: `Guest #${String(row.visitor_number).padStart(4, '0')}` }));
-  return { items: rows, page, pageSize, total };
+  return { items, page, pageSize, total };
 }
 
-export function listRegisteredUsers(query = {}) {
+export async function listRegisteredUsers(query = {}) {
   const { page, pageSize, offset } = pageOptions(query);
   const filter = dateFilter(query);
   const search = String(query.search || '').trim().slice(0, 100);
-  const searchClause = search ? 'AND (u.full_name LIKE ? OR u.email LIKE ?)' : '';
+  const searchClause = search ? 'AND (LOWER(u.full_name) LIKE LOWER(?) OR LOWER(u.email) LIKE LOWER(?))' : '';
   const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
   const total = search
-    ? db.prepare(`SELECT COUNT(*) AS count FROM user_accounts u WHERE full_name LIKE ? OR email LIKE ?`).get(...searchParams).count
-    : db.prepare('SELECT COUNT(*) AS count FROM user_accounts').get().count;
-  const rows = db.prepare(`SELECT u.id, u.full_name AS name, u.email, u.photo_url AS photoUrl, u.auth_provider AS authProvider,
+    ? (await db.prepare(`SELECT COUNT(*) AS count FROM user_accounts u WHERE LOWER(full_name) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?)`).get(...searchParams)).count
+    : (await db.prepare('SELECT COUNT(*) AS count FROM user_accounts').get()).count;
+  const rows = await db.prepare(`SELECT u.id, u.full_name AS name, u.email, u.photo_url AS photoUrl, u.auth_provider AS authProvider,
     u.registered_at AS registeredAt, u.last_login_at AS lastSignIn,
     COUNT(s.session_id) AS visits, COALESCE(SUM(s.active_seconds), 0) AS totalActiveSeconds,
     ROUND(AVG(s.active_seconds), 0) AS averageVisitSeconds,
@@ -433,43 +448,55 @@ export function listRegisteredUsers(query = {}) {
   return { items: rows, page, pageSize, total };
 }
 
-export function getRegisteredUserActivity(userId, query = {}) {
+export async function getRegisteredUserActivity(userId, query = {}) {
   if (typeof userId !== 'string' || !userId || userId.length > 200) return null;
-  const account = db.prepare(`SELECT id, full_name AS name, email, photo_url AS photoUrl, auth_provider AS authProvider,
+  const account = await db.prepare(`SELECT id, full_name AS name, email, photo_url AS photoUrl, auth_provider AS authProvider,
     registered_at AS registeredAt, last_login_at AS lastSignIn FROM user_accounts WHERE id = ?`).get(userId);
   if (!account) return null;
   const filter = dateFilter(query);
-  const sessions = db.prepare(`SELECT session_id, started_at AS startedAt, last_seen_at AS lastSeenAt,
+  const currentExpr = db.dialect === 'postgres'
+    ? `(CASE WHEN ended_at IS NULL AND last_seen_at >= ? AND was_visible = 1 AND was_active = 1 THEN 1 ELSE 0 END)`
+    : `(ended_at IS NULL AND last_seen_at >= ? AND was_visible = 1 AND was_active = 1)`;
+  const historyExpr = db.dialect === 'postgres'
+    ? `string_agg(page_path, ' | ')`
+    : `group_concat(page_path, ' | ')`;
+  const sessions = await db.prepare(`SELECT session_id, started_at AS startedAt, last_seen_at AS lastSeenAt,
     ended_at AS endedAt, active_seconds AS activeSeconds,
-    (ended_at IS NULL AND last_seen_at >= ? AND was_visible = 1 AND was_active = 1) AS isCurrent,
-    (SELECT group_concat(page_path, ' | ') FROM (SELECT page_path FROM analytics_page_views p
+    ${currentExpr} AS isCurrent,
+    (SELECT ${historyExpr} FROM (SELECT page_path FROM analytics_page_views p
       WHERE p.session_id = s.session_id ORDER BY occurred_at DESC LIMIT 20)) AS pageHistory
     FROM analytics_sessions s WHERE user_id = ? ${filter.sql} ORDER BY started_at DESC LIMIT 100`)
     .all(new Date(Date.now() - ANALYTICS_ACTIVE_WINDOW_MS).toISOString(), userId, ...filter.params);
   return { account, sessions };
 }
 
-export function getGuestVisitorActivity(visitorNumber) {
+export async function getGuestVisitorActivity(visitorNumber) {
   const parsedNumber = Number.parseInt(visitorNumber, 10);
   if (!Number.isSafeInteger(parsedNumber) || parsedNumber < 1) return null;
-  const visitor = db.prepare(`SELECT v.visitor_id, v.visitor_number, MIN(s.started_at) AS firstVisitAt, MAX(s.last_seen_at) AS lastSeenAt,
+  const visitor = await db.prepare(`SELECT v.visitor_id, v.visitor_number, MIN(s.started_at) AS firstVisitAt, MAX(s.last_seen_at) AS lastSeenAt,
     v.device_category AS deviceCategory, v.browser_category AS browserCategory, v.referral_source AS referralSource, v.country_code AS countryCode
     FROM analytics_visitors v JOIN analytics_sessions s ON s.visitor_id = v.visitor_id AND s.user_id IS NULL
     WHERE v.visitor_number = ? GROUP BY v.visitor_id`).get(parsedNumber);
   if (!visitor) return null;
-  const sessions = db.prepare(`SELECT s.session_id, s.started_at AS startedAt, s.last_seen_at AS lastSeenAt,
+  const currentExpr = db.dialect === 'postgres'
+    ? `(CASE WHEN s.ended_at IS NULL AND s.last_seen_at >= ? AND s.was_visible = 1 AND s.was_active = 1 THEN 1 ELSE 0 END)`
+    : `(s.ended_at IS NULL AND s.last_seen_at >= ? AND s.was_visible = 1 AND s.was_active = 1)`;
+  const historyExpr = db.dialect === 'postgres'
+    ? `string_agg(page_path, ' | ')`
+    : `group_concat(page_path, ' | ')`;
+  const sessions = await db.prepare(`SELECT s.session_id, s.started_at AS startedAt, s.last_seen_at AS lastSeenAt,
     s.ended_at AS endedAt, s.active_seconds AS activeSeconds,
-    (s.ended_at IS NULL AND s.last_seen_at >= ? AND s.was_visible = 1 AND s.was_active = 1) AS isCurrent,
-    (SELECT group_concat(page_path, ' | ') FROM (SELECT page_path FROM analytics_page_views p
+    ${currentExpr} AS isCurrent,
+    (SELECT ${historyExpr} FROM (SELECT page_path FROM analytics_page_views p
       WHERE p.session_id = s.session_id ORDER BY occurred_at DESC LIMIT 20)) AS pageHistory
     FROM analytics_sessions s WHERE s.visitor_id = ? AND s.user_id IS NULL ORDER BY s.started_at DESC LIMIT 100`)
     .all(new Date(Date.now() - ANALYTICS_ACTIVE_WINDOW_MS).toISOString(), visitor.visitor_id);
   return { visitor: { ...visitor, label: `Guest #${String(visitor.visitor_number).padStart(4, '0')}` }, sessions };
 }
 
-export function getRecentAnalyticsActivity(query = {}) {
+export async function getRecentAnalyticsActivity(query = {}) {
   const filter = dateFilter(query);
-  const rows = db.prepare(`SELECT s.visitor_id, s.user_id, s.started_at AS startedAt, s.last_seen_at AS lastActivity,
+  const rows = await db.prepare(`SELECT s.visitor_id, s.user_id, s.started_at AS startedAt, s.last_seen_at AS lastActivity,
     s.active_seconds AS activeSeconds, s.was_visible AS wasVisible, s.was_active AS wasActive, s.ended_at AS endedAt,
     v.visitor_number AS visitorNumber, u.full_name AS accountName,
     (SELECT page_path FROM analytics_page_views p WHERE p.session_id = s.session_id ORDER BY p.occurred_at DESC LIMIT 1) AS pagePath
