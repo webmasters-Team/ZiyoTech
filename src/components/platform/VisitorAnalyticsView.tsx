@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { API_BASE_URL } from '../../lib/api';
 import { Activity, ChevronLeft, ChevronRight, Clock3, Globe2, Monitor, RefreshCw, Search, Users, UserRound } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { AnalyticsCharts, type AnalyticsChartsData } from './AnalyticsCharts';
 
-const API_BASE = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
+const API_BASE = API_BASE_URL;
 type Section = 'overview' | 'guests' | 'users';
 type Overview = {
   totals: {

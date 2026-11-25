@@ -20,6 +20,8 @@ import dentalverseTeamImage from '../../23.png';
 import internationalDeliveryImage from '../../25.png';
 import mainPromotionalVideo from '../../video_for_main.mp4';
 import { ServicesVideoShowcase } from './ServicesVideoShowcase';
+import { LiveProjectShowcase } from './LiveProjectShowcase';
+import { CompanyProjectAccess } from './CompanyProjectAccess';
 
 interface AboutSectionProps {
   onNavigate: (page: string) => void;
@@ -262,6 +264,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
             ))}
           </div>
         </div>
+
+        <CompanyProjectAccess />
+        <LiveProjectShowcase onNavigate={onNavigate} />
 
         <div className="rounded-[32px] border border-slate-800 bg-linear-to-r from-slate-900 via-[#0a1521] to-[#07121d] p-7 sm:p-10">
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">

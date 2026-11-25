@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../lib/api';
 import { ArrowLeft, Eye, EyeOff, LoaderCircle, ShieldCheck } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 import { useLanguage } from '../../context/LanguageContext';
@@ -8,7 +9,6 @@ interface AdminLoginViewProps {
   onLogin: () => void;
 }
 
-const API_BASE_URL = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
 
 export const AdminLoginView: React.FC<AdminLoginViewProps> = ({ onBackToSite, onLogin }) => {
   const { language } = useLanguage();

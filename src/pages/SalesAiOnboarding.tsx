@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../lib/api';
 
 interface SalesAiOnboardingProps {
   onContinue: (businessId?: string) => void;
@@ -20,7 +21,7 @@ export default function SalesAiOnboarding({ onContinue }: SalesAiOnboardingProps
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:4000/api/businesses/onboard', {
+      const response = await fetch(`${API_BASE_URL}/api/businesses/onboard`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),

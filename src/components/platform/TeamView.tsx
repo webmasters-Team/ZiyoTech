@@ -6,7 +6,14 @@ import { Users } from 'lucide-react';
 export const TeamView: React.FC = () => {
   const { role, setRole } = usePlatform();
 
-  const [members, setMembers] = useState([]);
+  const [members] = useState<Array<{
+    id: string;
+    avatar: string;
+    name: string;
+    email: string;
+    role: UserRole;
+    activeConversations: number;
+  }>>([]);
 
   return (
     <div className="space-y-6 max-w-4xl">

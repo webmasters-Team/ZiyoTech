@@ -1,17 +1,15 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import {
   collection,
   deleteDoc,
   doc,
   getDocs,
   onSnapshot,
-  orderBy,
-  query,
   setDoc,
   updateDoc,
-  type DocumentData,
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, firebaseConfigIssue } from '../lib/firebase';
+import { mergeProjectRequests, normalizeProjectRequests, parseProjectRequestStorage } from '../lib/projectRequests.js';
 import { ProductItem, OrderItem, Conversation, AiAgentConfig, KnowledgeDoc, UserRole, ProjectRequest } from '../types';
 
 const PROJECT_REQUESTS_COLLECTION = 'projectRequests';
@@ -22,23 +20,6 @@ const buildProjectRequestDocument = (request: Omit<ProjectRequest, 'id' | 'creat
   createdAt: request.createdAt || new Date().toISOString(),
   status: request.status || 'new',
 });
-
-const normalizeProjectRequests = (items: DocumentData[]): ProjectRequest[] =>
-  items
-    .map((item) => ({
-      id: String(item.id || item.reqId || ''),
-      name: String(item.name || ''),
-      businessName: String(item.businessName || ''),
-      email: String(item.email || ''),
-      phoneOrTelegram: String(item.phoneOrTelegram || ''),
-      serviceId: String(item.serviceId || 'ai-automation'),
-      projectDesc: String(item.projectDesc || ''),
-      preferredLang: (item.preferredLang === 'ru' || item.preferredLang === 'en' ? item.preferredLang : 'uz') as ProjectRequest['preferredLang'],
-      status: (item.status === 'new' || item.status === 'review' || item.status === 'contacted' || item.status === 'completed' ? item.status : 'new') as ProjectRequest['status'],
-      source: item.source === 'website' ? 'website' : 'website',
-      createdAt: String(item.createdAt || new Date().toISOString()),
-    }))
-    .filter((item) => item.id);
 
 interface PlatformContextType {
   role: UserRole;
@@ -56,6 +37,7 @@ interface PlatformContextType {
   updateOrderStatus: (orderId: string, status: OrderItem['status']) => void;
   projectRequests: ProjectRequest[];
   projectRequestsLoadStatus: 'loading' | 'ready' | 'error';
+  projectRequestsLoadError: string;
   addProjectRequest: (request: Omit<ProjectRequest, 'id' | 'createdAt' | 'status'>) => void;
   updateProjectRequestStatus: (requestId: string, status: ProjectRequest['status']) => void;
   aiConfig: AiAgentConfig;
@@ -107,9 +89,16 @@ const initialKnowledge: KnowledgeDoc[] = [
   },
 ];
 
-const initialProjectRequests: ProjectRequest[] = [];
-
 const PROJECT_REQUESTS_STORAGE_KEY = 'ziotech-project-requests';
+
+const readInitialProjectRequestStorage = () => {
+  if (typeof window === 'undefined') return { valid: true, requests: [] as ProjectRequest[] };
+  try {
+    return parseProjectRequestStorage(window.localStorage.getItem(PROJECT_REQUESTS_STORAGE_KEY));
+  } catch {
+    return { valid: false, requests: [] as ProjectRequest[] };
+  }
+};
 
 const PlatformContext = createContext<PlatformContextType | undefined>(undefined);
 
@@ -119,16 +108,20 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string>('');
   const [orders, setOrders] = useState<OrderItem[]>(initialOrders);
-  const [projectRequests, setProjectRequests] = useState<ProjectRequest[]>(initialProjectRequests);
-  const [projectRequestsLoadStatus, setProjectRequestsLoadStatus] = useState<'loading' | 'ready' | 'error'>(db ? 'loading' : 'ready');
+  const initialRequestStorage = useRef(readInitialProjectRequestStorage());
+  const canPersistProjectRequestCache = useRef(initialRequestStorage.current.valid);
+  const [projectRequests, setProjectRequests] = useState<ProjectRequest[]>(initialRequestStorage.current.requests);
+  const [projectRequestsLoadStatus, setProjectRequestsLoadStatus] = useState<'loading' | 'ready' | 'error'>(db ? 'loading' : 'error');
+  const [projectRequestsLoadError, setProjectRequestsLoadError] = useState(db ? '' : firebaseConfigIssue || 'Firestore is not configured. Project Requests could not be loaded.');
   const [knowledgeDocs, setKnowledgeDocs] = useState<KnowledgeDoc[]>(initialKnowledge);
 
   useEffect(() => {
     if (!db) return;
 
-    const q = query(collection(db, PROJECT_REQUESTS_COLLECTION), orderBy('createdAt', 'desc'));
+    // Read the full collection so documents without createdAt are not omitted by Firestore orderBy.
+    const requestsRef = collection(db, PROJECT_REQUESTS_COLLECTION);
     const unsubscribe = onSnapshot(
-      q,
+      requestsRef,
       (snapshot) => {
         const firebaseRequests = normalizeProjectRequests(
           snapshot.docs.map((docSnap) => ({
@@ -138,11 +131,13 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           }))
         );
 
-        setProjectRequests(firebaseRequests);
+        setProjectRequests((localRequests) => mergeProjectRequests(localRequests, firebaseRequests));
         setProjectRequestsLoadStatus('ready');
+        setProjectRequestsLoadError('');
       },
       (error) => {
         setProjectRequestsLoadStatus('error');
+        setProjectRequestsLoadError('Firestore could not be reached. Check the Firebase configuration and network connection. Any locally cached requests remain visible.');
         console.warn('Failed to load project requests from Firestore:', error);
       }
     );
@@ -152,7 +147,13 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(PROJECT_REQUESTS_STORAGE_KEY, JSON.stringify(projectRequests));
+      if (canPersistProjectRequestCache.current) {
+        try {
+          window.localStorage.setItem(PROJECT_REQUESTS_STORAGE_KEY, JSON.stringify(projectRequests));
+        } catch {
+          // Keep the in-memory requests available if browser storage is blocked or full.
+        }
+      }
     }
   }, [projectRequests]);
 
@@ -315,6 +316,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateOrderStatus,
         projectRequests,
         projectRequestsLoadStatus,
+        projectRequestsLoadError,
         addProjectRequest,
         updateProjectRequestStatus,
         aiConfig,

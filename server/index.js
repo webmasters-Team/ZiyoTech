@@ -1,4 +1,34 @@
 import express from 'express';
+import { validateExternalProjectResourceUrl, validateProjectResourceBytes } from './projectResourceSecurity.js';
+import {
+  consumeClientAccessAttempt,
+  createClientSessionForAccessCode,
+  createCompany,
+  createMilestone,
+  createProject,
+  createProjectUpdate,
+  createProjectResource,
+  getProjectResource,
+  deleteProjectResource,
+  setProjectResourceVisibility,
+  createTask,
+  getAdminCompanyDashboard,
+  getAdminProject,
+  getClientProject,
+  getClientProjects,
+  getClientSession,
+  isValidAccessCodeFormat,
+  issueCompanyAccessCode,
+  listProjectActivity,
+  revokeClientSession,
+  revokeCompanyAccessCode,
+  setCompanyStatus,
+  updateCompany,
+  updateMilestone,
+  updateProject,
+  updateTask,
+  verifyClientCsrf,
+} from './clientProjectService.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { initializeDatabase } from './db.js';
@@ -181,7 +211,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Resource-Title', 'X-Resource-Description', 'X-Resource-Visibility', 'X-Resource-File-Name'],
   optionsSuccessStatus: 204,
   maxAge: 600,
 }));
@@ -193,6 +223,8 @@ const USER_SESSION_COOKIE = isProduction ? '__Host-ziyotech_session' : 'ziyotech
 const USER_CSRF_COOKIE = isProduction ? '__Host-ziyo_csrf' : 'ziyo_csrf';
 const ADMIN_SESSION_COOKIE = isProduction ? '__Host-ziyotech_admin' : 'ziyotech_admin_session';
 const ADMIN_CSRF_COOKIE = isProduction ? '__Host-ziyo_admin_csrf' : 'ziyo_admin_csrf';
+const CLIENT_SESSION_COOKIE = isProduction ? '__Host-ziyotech_client' : 'ziyotech_client_session';
+const CLIENT_CSRF_COOKIE = isProduction ? '__Host-ziyo_client_csrf' : 'ziyo_client_csrf';
 const ANALYTICS_VISITOR_COOKIE = isProduction ? '__Host-ziyo_visitor' : 'ziyo_visitor';
 const ANALYTICS_SESSION_COOKIE = isProduction ? '__Host-ziyo_visit_session' : 'ziyo_visit_session';
 const authRateLimits = new Map();
@@ -230,6 +262,15 @@ function clearAdminCookies(res) {
   appendCookie(res, ADMIN_CSRF_COOKIE, '', { maxAge: 0 });
 }
 
+function setClientCookies(res, session) {
+  appendCookie(res, CLIENT_SESSION_COOKIE, session.token, { httpOnly: true, maxAge: 60 * 60 * 8 });
+  appendCookie(res, CLIENT_CSRF_COOKIE, session.csrfToken, { maxAge: 60 * 60 * 8 });
+}
+
+function clearClientCookies(res) {
+  appendCookie(res, CLIENT_SESSION_COOKIE, '', { httpOnly: true, maxAge: 0 });
+  appendCookie(res, CLIENT_CSRF_COOKIE, '', { maxAge: 0 });
+}
 function setUserCookies(res, session) {
   appendCookie(res, USER_SESSION_COOKIE, session.token, { httpOnly: true });
   appendCookie(res, USER_CSRF_COOKIE, session.csrfToken);
@@ -397,10 +438,11 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.get('/', (_req, res) => {
+  const frontendUrl = isProduction ? 'https://ziyotech.net' : 'http://localhost:3000';
   res.json({
     ok: true,
     service: 'ziyo-tech-sales-ai',
-    message: 'API server is running. Use the frontend at http://localhost:3000 or the API routes under /api.',
+    message: `API server is running. Use the frontend at ${frontendUrl} or the API routes under /api.`,
     endpoints: ['/api/health', '/api/admin/login', '/api/businesses', '/api/catalog'],
   });
 });
@@ -841,6 +883,324 @@ async function requireAdminAuth(req, res, next) {
   req.admin = userSession.user;
   return next();
 }
+
+async function requireClientSession(req, res, next) {
+  const session = await getClientSession(readCookie(req, CLIENT_SESSION_COOKIE));
+  if (!session) return res.status(401).json({ error: 'Client portal access is unavailable or the session has expired.' });
+  req.clientSession = session;
+  return next();
+}
+
+function requireClientCsrf(req, res, next) {
+  const cookieToken = readCookie(req, CLIENT_CSRF_COOKIE);
+  const headerToken = req.get('x-csrf-token');
+  if (!cookieToken || cookieToken !== headerToken || !verifyClientCsrf(req.clientSession, headerToken)) {
+    return res.status(403).json({ error: 'Security token is missing or invalid. Reload the page and try again.' });
+  }
+  return next();
+}
+
+function isProjectManagementSchemaMissing(error) {
+  return error?.code === '42P01'
+    || (error?.code === 'SQLITE_ERROR' && /no such table:\s*(?:main\.)?client_/i.test(String(error.message || '')))
+    || /relation\s+["']?client_[^\s"']+["']?\s+does not exist/i.test(String(error?.message || ''));
+}
+
+function boundedText(value, maxLength, { required = false } = {}) {
+  if (typeof value !== 'string') return required ? null : '';
+  const normalized = value.trim();
+  if ((required && !normalized) || normalized.length > maxLength) return null;
+  return normalized;
+}
+
+function validDate(value, optional = true) {
+  if (value == null || value === '') return optional ? null : undefined;
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? value : undefined;
+}
+
+function validateProjectFields(body = {}) {
+  const title = boundedText(body.title, 160, { required: true });
+  const description = boundedText(body.description, 5000);
+  const scope = boundedText(body.scope, 5000);
+  const status = ['planning', 'in_progress', 'blocked', 'delayed', 'completed', 'on_hold'].includes(body.status) ? body.status : 'planning';
+  const startDate = validDate(body.startDate);
+  const targetCompletionDate = validDate(body.targetCompletionDate);
+  const estimatedCompletionDate = validDate(body.estimatedCompletionDate);
+  const actualCompletionDate = validDate(body.actualCompletionDate);
+  if (title === null || description === null || scope === null || [startDate, targetCompletionDate, estimatedCompletionDate, actualCompletionDate].includes(undefined)) return null;
+  return { title, description, scope, status, startDate, targetCompletionDate, estimatedCompletionDate, actualCompletionDate };
+}
+
+app.get('/api/admin/client-projects', rejectUntrustedAuthOrigin, requireAdminAuth, async (_req, res) => {
+  try { return res.json(await getAdminCompanyDashboard()); }
+  catch (error) {
+    if (isProjectManagementSchemaMissing(error)) return res.status(503).json({ error: 'Project Management database tables are not installed. Apply the approved local SQLite migration first.' });
+    return res.status(500).json({ error: 'Client project management could not be loaded.' });
+  }
+});
+
+app.post('/api/admin/client-projects/companies', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  const body = req.body || {};
+  const companyName = boundedText(body.companyName, 160, { required: true });
+  const contactPerson = boundedText(body.contactPerson, 160);
+  const email = boundedText(body.email, 254);
+  const phone = boundedText(body.phone, 40);
+  const description = boundedText(body.description, 5000);
+  if ([companyName, contactPerson, email, phone, description].includes(null)
+    || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return res.status(400).json({ error: 'Enter a valid company name and contact details.' });
+  try { return res.status(201).json(await createCompany({ companyName, contactPerson, email, phone, description }, req.admin.id)); }
+  catch { return res.status(500).json({ error: 'Company could not be created.' }); }
+});
+
+app.put('/api/admin/client-projects/companies/:companyId', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  const body = req.body || {};
+  const companyName = boundedText(body.companyName, 160, { required: true });
+  const contactPerson = boundedText(body.contactPerson, 160);
+  const email = boundedText(body.email, 254);
+  const phone = boundedText(body.phone, 40);
+  const description = boundedText(body.description, 5000);
+  if ([companyName, contactPerson, email, phone, description].includes(null)
+    || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return res.status(400).json({ error: 'Enter valid company and contact details.' });
+  try {
+    const company = await updateCompany(req.params.companyId, { companyName, contactPerson, email, phone, description }, req.admin.id);
+    return company ? res.json(company) : res.status(404).json({ error: 'Company not found.' });
+  } catch { return res.status(500).json({ error: 'Company could not be updated.' }); }
+});
+
+app.patch('/api/admin/client-projects/companies/:companyId/status', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  if (!['active', 'inactive'].includes(req.body?.status)) return res.status(400).json({ error: 'Choose an active or inactive company status.' });
+  try {
+    const changed = await setCompanyStatus(req.params.companyId, req.body.status, req.admin.id);
+    return changed ? res.json({ success: true }) : res.status(404).json({ error: 'Company not found.' });
+  } catch { return res.status(500).json({ error: 'Company status could not be updated.' }); }
+});
+
+app.post('/api/admin/client-projects/companies/:companyId/access-code', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  try {
+    const expiration = req.body?.expiresAt == null || req.body.expiresAt === '' ? null : new Date(req.body.expiresAt);
+    if (expiration && (!Number.isFinite(expiration.valueOf()) || expiration.valueOf() <= Date.now() || expiration.valueOf() > Date.now() + 366 * 24 * 60 * 60 * 1000)) return res.status(400).json({ error: 'Choose an expiration within the next year.' });
+    const issued = await issueCompanyAccessCode(req.params.companyId, req.admin.id, expiration?.toISOString() || null);
+    return issued ? res.status(201).json(issued) : res.status(404).json({ error: 'Active company not found.' });
+  } catch (error) {
+    if (error?.code === 'CLIENT_ACCESS_NOT_CONFIGURED') return res.status(503).json({ error: 'Client access-code signing secret is not configured.' });
+    return res.status(500).json({ error: 'Access code could not be generated.' });
+  }
+});
+
+app.delete('/api/admin/client-projects/companies/:companyId/access-code', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  try {
+    const revoked = await revokeCompanyAccessCode(req.params.companyId, req.admin.id);
+    return revoked ? res.json({ success: true }) : res.status(404).json({ error: 'Active access code not found.' });
+  } catch { return res.status(500).json({ error: 'Access code could not be revoked.' }); }
+});
+
+app.post('/api/admin/client-projects/projects', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  const companyId = boundedText(req.body?.companyId, 80, { required: true });
+  const fields = validateProjectFields(req.body);
+  if (!companyId || !fields) return res.status(400).json({ error: 'Enter a company and valid project details.' });
+  try {
+    const project = await createProject({ ...fields, companyId }, req.admin.id);
+    return project ? res.status(201).json(project) : res.status(404).json({ error: 'Active company not found.' });
+  } catch { return res.status(500).json({ error: 'Project could not be created.' }); }
+});
+
+app.put('/api/admin/client-projects/projects/:projectId', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  const fields = validateProjectFields(req.body);
+  if (!fields) return res.status(400).json({ error: 'Enter valid project details and dates.' });
+  try {
+    const project = await updateProject(req.params.projectId, fields, req.admin.id);
+    return project ? res.json(project) : res.status(404).json({ error: 'Project not found.' });
+  } catch { return res.status(500).json({ error: 'Project could not be updated.' }); }
+});
+
+app.post('/api/admin/client-projects/projects/:projectId/milestones', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  const title = boundedText(req.body?.title, 160, { required: true });
+  const description = boundedText(req.body?.description, 3000);
+  const weight = Number(req.body?.weight);
+  const startDate = validDate(req.body?.startDate);
+  const dueDate = validDate(req.body?.dueDate);
+  if (!title || description === null || !Number.isFinite(weight) || weight <= 0 || weight > 1000 || startDate === undefined || dueDate === undefined) return res.status(400).json({ error: 'Enter valid milestone details, weight, and dates.' });
+  try {
+    const project = await createMilestone(req.params.projectId, { title, description, weight, startDate, dueDate }, req.admin.id);
+    return project ? res.status(201).json(project) : res.status(404).json({ error: 'Project not found.' });
+  } catch { return res.status(500).json({ error: 'Milestone could not be created.' }); }
+});
+
+app.put('/api/admin/client-projects/projects/:projectId/milestones/:milestoneId', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  const title = boundedText(req.body?.title, 160, { required: true });
+  const description = boundedText(req.body?.description, 3000);
+  const weight = Number(req.body?.weight);
+  const startDate = validDate(req.body?.startDate);
+  const dueDate = validDate(req.body?.dueDate);
+  if (!title || description === null || !Number.isFinite(weight) || weight <= 0 || weight > 1000 || startDate === undefined || dueDate === undefined) return res.status(400).json({ error: 'Enter valid milestone details, weight, and dates.' });
+  try {
+    const project = await updateMilestone(req.params.projectId, req.params.milestoneId, { title, description, weight, startDate, dueDate }, req.admin.id);
+    return project ? res.json(project) : res.status(404).json({ error: 'Milestone or project not found.' });
+  } catch { return res.status(500).json({ error: 'Milestone could not be updated.' }); }
+});
+
+app.post('/api/admin/client-projects/projects/:projectId/milestones/:milestoneId/tasks', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  const title = boundedText(req.body?.title, 160, { required: true });
+  const description = boundedText(req.body?.description, 3000);
+  const weight = Number(req.body?.weight);
+  const dueDate = validDate(req.body?.dueDate);
+  const status = ['upcoming', 'in_progress', 'blocked', 'completed'].includes(req.body?.status) ? req.body.status : 'upcoming';
+  const completionPercentage = Number(req.body?.completionPercentage || 0);
+  const developmentNotes = boundedText(req.body?.developmentNotes, 5000);
+  const blocker = boundedText(req.body?.blocker, 2000);
+  if (!title || description === null || !Number.isFinite(weight) || weight <= 0 || weight > 1000 || dueDate === undefined
+    || !Number.isFinite(completionPercentage) || completionPercentage < 0 || completionPercentage > 100 || developmentNotes === null || blocker === null) return res.status(400).json({ error: 'Enter valid task details, weight, progress, and deadline.' });
+  try {
+    const project = await createTask(req.params.projectId, req.params.milestoneId, { title, description, weight, status, completionPercentage, dueDate, developmentNotes, blocker }, req.admin.id);
+    return project ? res.status(201).json(project) : res.status(404).json({ error: 'Project or milestone not found.' });
+  } catch { return res.status(500).json({ error: 'Task could not be created.' }); }
+});
+
+app.patch('/api/admin/client-projects/projects/:projectId/tasks/:taskId', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  const title = boundedText(req.body?.title, 160, { required: true });
+  const description = boundedText(req.body?.description, 3000);
+  const weight = Number(req.body?.weight);
+  const dueDate = validDate(req.body?.dueDate);
+  const status = ['upcoming', 'in_progress', 'blocked', 'completed'].includes(req.body?.status) ? req.body.status : null;
+  const completionPercentage = Number(req.body?.completionPercentage || 0);
+  const developmentNotes = boundedText(req.body?.developmentNotes, 5000);
+  const blocker = boundedText(req.body?.blocker, 2000);
+  if (!title || description === null || !Number.isFinite(weight) || weight <= 0 || weight > 1000 || !status || dueDate === undefined
+    || !Number.isFinite(completionPercentage) || completionPercentage < 0 || completionPercentage > 100 || developmentNotes === null || blocker === null) return res.status(400).json({ error: 'Enter valid task details, status, weight, progress, and deadline.' });
+  try {
+    const project = await updateTask(req.params.projectId, req.params.taskId, { title, description, weight, status, completionPercentage, dueDate, developmentNotes, blocker }, req.admin.id);
+    return project ? res.json(project) : res.status(404).json({ error: 'Task or project not found.' });
+  } catch { return res.status(500).json({ error: 'Task could not be updated.' }); }
+});
+
+app.post('/api/admin/client-projects/projects/:projectId/updates', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  const title = boundedText(req.body?.title, 160, { required: true });
+  const body = boundedText(req.body?.body, 5000, { required: true });
+  if (!title || !body) return res.status(400).json({ error: 'Enter an update title and message.' });
+  try {
+    const project = await createProjectUpdate(req.params.projectId, { title, body }, req.admin.id);
+    return project ? res.status(201).json(project) : res.status(404).json({ error: 'Project not found.' });
+  } catch { return res.status(500).json({ error: 'Project update could not be published.' }); }
+});
+
+app.get('/api/admin/client-projects/projects/:projectId', rejectUntrustedAuthOrigin, requireAdminAuth, async (req, res) => {
+  try {
+    const project = await getAdminProject(req.params.projectId);
+    return project ? res.json(project) : res.status(404).json({ error: 'Project not found.' });
+  } catch { return res.status(500).json({ error: 'Project could not be loaded.' }); }
+});
+
+app.get('/api/admin/client-projects/projects/:projectId/activity', rejectUntrustedAuthOrigin, requireAdminAuth, async (req, res) => {
+  try { return res.json(await listProjectActivity(req.params.projectId)); }
+  catch { return res.status(500).json({ error: 'Project activity could not be loaded.' }); }
+});
+
+function secureResourceResponse(res, resource) {
+  res.set({ 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; sandbox", 'Referrer-Policy': 'no-referrer' });
+  if (resource.resourceType === 'link') return res.json({ id: resource.id, title: resource.title, externalUrl: resource.externalUrl });
+  const disposition = resource.resourceType === 'document' ? 'attachment' : 'inline';
+  const fileName = String(resource.fileName || 'project-resource').replace(/[\r\n"\\]/g, '_').slice(0, 180);
+  const asciiName = fileName.replace(/[^\x20-\x7e]/g, '_');
+  return res.set({ 'Content-Type': resource.mimeType, 'Content-Length': String(resource.sizeBytes), 'Content-Disposition': `${disposition}; filename="${asciiName}"; filename*=UTF-8''${encodeURIComponent(fileName)}` }).send(resource.content);
+}
+
+app.post('/api/admin/client-projects/projects/:projectId/resources/upload', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, express.raw({ type: ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'application/pdf'], limit: '8mb' }), async (req, res) => {
+  const mimeType = String(req.get('content-type') || '').toLowerCase();
+  let decodedTitle = ''; let decodedDescription = '';
+  try { decodedTitle = decodeURIComponent(req.get('x-resource-title') || ''); decodedDescription = decodeURIComponent(req.get('x-resource-description') || ''); }
+  catch { return res.status(400).json({ error: 'Invalid resource text.' }); }
+  const title = boundedText(decodedTitle, 160, { required: true });
+  const description = boundedText(decodedDescription, 2000);
+  const visibility = req.get('x-resource-visibility') === 'client' ? 'client' : 'private';
+  let fileName = '';
+  try { fileName = decodeURIComponent(req.get('x-resource-file-name') || 'project-resource').replace(/[\\/\r\n\0]/g, '_').slice(0, 180); } catch { return res.status(400).json({ error: 'Invalid file name.' }); }
+  const bytes = req.body;
+  if (!title || description === null || !validateProjectResourceBytes(bytes, mimeType)) return res.status(400).json({ error: 'Choose a supported image, video, or PDF file no larger than 8 MB.' });
+  const resourceType = mimeType.startsWith('image/') ? 'image' : mimeType.startsWith('video/') ? 'video' : 'document';
+  try {
+    const resource = await createProjectResource(req.params.projectId, { resourceType, fileName, mimeType, content: bytes, title, description, visibility }, req.admin.id);
+    return resource ? res.status(201).json(resource) : res.status(404).json({ error: 'Project not found.' });
+  } catch { return res.status(500).json({ error: 'Project resource could not be stored.' }); }
+});
+
+app.post('/api/admin/client-projects/projects/:projectId/resources/link', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  const title = boundedText(req.body?.title, 160, { required: true });
+  const description = boundedText(req.body?.description || '', 2000);
+  const rawUrl = boundedText(req.body?.url, 2048, { required: true });
+  const visibility = req.body?.visibility === 'client' ? 'client' : 'private';
+  const parsed = rawUrl ? validateExternalProjectResourceUrl(rawUrl) : null;
+  if (!title || description === null || !parsed) return res.status(400).json({ error: 'Enter a valid public HTTPS resource URL.' });
+  try {
+    const resource = await createProjectResource(req.params.projectId, { resourceType: 'link', externalUrl: parsed.toString(), title, description, visibility }, req.admin.id);
+    return resource ? res.status(201).json(resource) : res.status(404).json({ error: 'Project not found.' });
+  } catch { return res.status(500).json({ error: 'Project link could not be saved.' }); }
+});
+
+app.get('/api/admin/client-projects/projects/:projectId/resources/:resourceId/content', rejectUntrustedAuthOrigin, requireAdminAuth, async (req, res) => {
+  try { const resource = await getProjectResource(req.params.projectId, req.params.resourceId); return resource ? secureResourceResponse(res, resource) : res.status(404).json({ error: 'Resource not found.' }); }
+  catch { return res.status(500).json({ error: 'Resource could not be loaded.' }); }
+});
+app.delete('/api/admin/client-projects/projects/:projectId/resources/:resourceId', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  try { return await deleteProjectResource(req.params.projectId, req.params.resourceId, req.admin.id) ? res.json({ success: true }) : res.status(404).json({ error: 'Resource not found.' }); }
+  catch { return res.status(500).json({ error: 'Resource could not be removed.' }); }
+});
+app.patch('/api/admin/client-projects/projects/:projectId/resources/:resourceId', rejectUntrustedAuthOrigin, requireAdminAuth, requireAdminCsrf, async (req, res) => {
+  const visibility = req.body?.visibility;
+  if (visibility !== 'private' && visibility !== 'client') return res.status(400).json({ error: 'Choose private or client visibility.' });
+  try { return await setProjectResourceVisibility(req.params.projectId, req.params.resourceId, visibility, req.admin.id) ? res.json({ success: true }) : res.status(404).json({ error: 'Resource not found.' }); }
+  catch { return res.status(500).json({ error: 'Resource visibility could not be changed.' }); }
+});
+
+app.post('/api/client-portal/access', rejectUntrustedAuthOrigin, authRateLimit(8), async (req, res) => {
+  const rawCode = req.body?.code;
+  const code = typeof rawCode === 'string' && rawCode.length <= 32 ? rawCode : '';
+  try {
+    if (!await consumeClientAccessAttempt(req.ip || req.socket.remoteAddress || 'unknown')) {
+      res.set('Retry-After', '900');
+      return res.status(429).json({ error: 'Client portal access is not available yet.' });
+    }
+    if (!isValidAccessCodeFormat(code)) return res.status(401).json({ error: 'Client portal access is not available yet.' });
+    const session = await createClientSessionForAccessCode(code);
+    if (!session) return res.status(401).json({ error: 'Client portal access is not available yet.' });
+    setClientCookies(res, session);
+    return res.json({ authenticated: true, csrfToken: session.csrfToken });
+  } catch (error) {
+    if (error?.code === 'CLIENT_ACCESS_NOT_CONFIGURED') return res.status(503).json({ error: 'Client portal access is not available yet.' });
+    return res.status(500).json({ error: 'Client portal access is not available yet.' });
+  }
+});
+
+app.get('/api/client-portal/projects', rejectUntrustedAuthOrigin, requireClientSession, async (req, res) => {
+  try { return res.json({ projects: await getClientProjects(req.clientSession.companyId) }); }
+  catch { return res.status(500).json({ error: 'Client projects could not be loaded.' }); }
+});
+
+app.get('/api/client-portal/session', rejectUntrustedAuthOrigin, requireClientSession, (req, res) => {
+  return res.json({ authenticated: true, csrfToken: readCookie(req, CLIENT_CSRF_COOKIE) });
+});
+
+app.get('/api/client-portal/projects/:projectId', rejectUntrustedAuthOrigin, requireClientSession, async (req, res) => {
+  try {
+    const project = await getClientProject(req.clientSession.companyId, req.params.projectId);
+    return project ? res.json(project) : res.status(404).json({ error: 'Project not found.' });
+  } catch { return res.status(500).json({ error: 'Client project could not be loaded.' }); }
+});
+
+app.get('/api/client-portal/projects/:projectId/resources/:resourceId/content', rejectUntrustedAuthOrigin, requireClientSession, async (req, res) => {
+  try {
+    const resource = await getProjectResource(req.params.projectId, req.params.resourceId, req.clientSession.companyId);
+    return resource ? secureResourceResponse(res, resource) : res.status(404).json({ error: 'Resource not found.' });
+  } catch { return res.status(500).json({ error: 'Resource could not be loaded.' }); }
+});
+
+app.post('/api/client-portal/logout', rejectUntrustedAuthOrigin, requireClientSession, requireClientCsrf, async (req, res) => {
+  await revokeClientSession(readCookie(req, CLIENT_SESSION_COOKIE));
+  clearClientCookies(res);
+  return res.json({ success: true });
+});
+
 
 app.post('/api/businesses/onboard', async (req, res) => {
   const { name, type = 'retail', language = 'uz', botEnabled = true } = req.body || {};

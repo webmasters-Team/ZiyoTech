@@ -98,9 +98,9 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   }, [mobileMenuOpen]);
 
   const languages: { code: Language; label: string; short: string; flag: string }[] = [
-    { code: 'uz', label: "O'zbekcha", short: 'UZ', flag: '🇺🇿' },
-    { code: 'ru', label: 'Русский', short: 'RU', flag: '🇷🇺' },
-    { code: 'en', label: 'English', short: 'EN', flag: '🇬🇧' },
+    { code: 'uz', label: "O'zbekcha", short: 'UZ', flag: '/flags/uz.svg' },
+    { code: 'ru', label: 'Русский', short: 'RU', flag: '/flags/ru.svg' },
+    { code: 'en', label: 'English', short: 'EN', flag: '/flags/gb.svg' },
   ];
 
   const currentLangObj = languages.find((l) => l.code === language) || languages[0];
@@ -287,6 +287,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
               aria-label="Select Language"
             >
               <Globe className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`} />
+              <img src={currentLangObj.flag} alt="" aria-hidden="true" className="h-3.5 w-5 rounded-[2px] border border-slate-500/40 bg-white object-contain" />
               <span>{currentLangObj.short}</span>
               <ChevronDown className={`w-3 h-3 transition-transform ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} ${langMenuOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -311,7 +312,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                     }`}
                   >
                     <span>{l.label}</span>
-                    <span className="text-sm">{l.flag}</span>
+                    <img src={l.flag} alt="" aria-hidden="true" className="h-3.5 w-5 rounded-[2px] border border-slate-500/40 bg-white object-contain" />
                   </button>
                 ))}
               </div>
@@ -391,12 +392,13 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                   <button
                     key={l.code}
                     onClick={() => setLanguage(l.code)}
-                    className={`px-2.5 py-1 text-xs font-bold rounded-full transition-colors ${
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-full transition-colors ${
                       language === l.code
                         ? 'bg-blue-600 text-white font-bold'
                         : theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
+                    <img src={l.flag} alt="" aria-hidden="true" className="h-3.5 w-5 rounded-[2px] border border-slate-500/40 bg-white object-contain" />
                     {l.short}
                   </button>
                 ))}

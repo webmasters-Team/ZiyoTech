@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { API_BASE_URL } from './lib/api';
 import { createPortal } from 'react-dom';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { PlatformProvider } from './context/PlatformContext';
@@ -61,11 +62,7 @@ type SpeechRecognitionLike = {
 };
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
-const ASSISTANT_API_BASE = (
-  import.meta.env.VITE_ASSISTANT_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? 'http://localhost:4000' : '')
-).replace(/\/+$/, '');
+const ASSISTANT_API_BASE = API_BASE_URL;
 
 async function hasAuthenticatedAdminSession() {
   try {

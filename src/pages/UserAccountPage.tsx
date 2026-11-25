@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { API_BASE_URL } from '../lib/api';
 import {
   applyActionCode,
   checkActionCode,
@@ -46,7 +47,7 @@ function isSafeGooglePhotoUrl(value: string | null | undefined): value is string
   }
 }
 
-const AUTH_API_BASE = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
+const AUTH_API_BASE = API_BASE_URL;
 
 async function authRequest(path: string, options: RequestInit = {}) {
   let response: Response;

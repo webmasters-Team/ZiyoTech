@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { API_BASE_URL } from '../../lib/api';
 import {
   Activity,
   ArrowUpRight,
@@ -81,7 +82,6 @@ type SettingsPayload = {
   humanHandoff: string;
 };
 
-const API_BASE_URL = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
 
 const tabs: { key: TabKey; label: string; icon: React.ComponentType<any> }[] = [
   { key: 'overview', label: 'Overview', icon: Activity },
