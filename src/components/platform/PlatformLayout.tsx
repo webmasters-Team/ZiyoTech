@@ -41,6 +41,7 @@ import { AiSalesAgentDashboard } from './AiSalesAgentDashboard';
 import { ClientProjectManagementView } from './ClientProjectManagementView';
 
 const VISITOR_ANALYTICS_API_BASE = API_BASE_URL;
+const PROJECT_MANAGEMENT_ENABLED = import.meta.env.VITE_PROJECT_MANAGEMENT_ENABLED === 'true';
 
 interface PlatformLayoutProps {
   onBackToSite: () => void;
@@ -80,7 +81,7 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite, on
 
   const navItems = [
     ...(canViewVisitorAnalytics ? [{ id: 'visitor-analytics', label: language === 'ru' ? 'Панель администратора' : language === 'en' ? 'Admin Dashboard' : 'Admin paneli', icon: Radio }] : []),
-    ...(canViewVisitorAnalytics ? [{ id: 'project-management', label: language === 'ru' ? 'Управление проектами' : language === 'en' ? 'Project Management' : 'Loyihalarni boshqarish', icon: BriefcaseBusiness }] : []),
+    ...(canViewVisitorAnalytics && PROJECT_MANAGEMENT_ENABLED ? [{ id: 'project-management', label: language === 'ru' ? 'Управление проектами' : language === 'en' ? 'Project Management' : 'Loyihalarni boshqarish', icon: BriefcaseBusiness }] : []),
     { id: 'overview', label: t.platform.overview, icon: LayoutDashboard },
     { id: 'inbox', label: t.platform.inbox, icon: MessageSquare, badge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined },
     { id: 'sales-agent', label: 'AI Sales Agent', icon: Bot },
@@ -123,7 +124,7 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite, on
       case 'visitor-analytics':
         return canViewVisitorAnalytics ? <VisitorAnalyticsView /> : <OverviewView onNavigateTab={setActiveTab} />;
       case 'project-management':
-        return canViewVisitorAnalytics ? <ClientProjectManagementView /> : <OverviewView onNavigateTab={setActiveTab} />;
+        return canViewVisitorAnalytics && PROJECT_MANAGEMENT_ENABLED ? <ClientProjectManagementView /> : <OverviewView onNavigateTab={setActiveTab} />;
       case 'team':
         return <TeamView />;
       case 'settings':

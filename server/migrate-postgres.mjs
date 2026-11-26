@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { createPostgresPool } from './db.js';
 
 dotenv.config({ quiet: true });
-dotenv.config({ path: '.env.supabase.local', override: true, quiet: true });
+dotenv.config({ path: '.env.supabase.local', quiet: true });
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDirectory = path.join(here, 'migrations');
@@ -13,6 +13,13 @@ const migrations = [
   { version: 1, name: 'initial_schema', file: '001_initial_schema.sql' },
   { version: 2, name: 'sqlite_import_ledger', file: '002_import_ledger.sql' },
 ];
+const projectManagementRequested = process.argv.includes('--apply-project-management');
+if (projectManagementRequested) {
+  if (process.env.PROJECT_MANAGEMENT_MIGRATION_DATABASE_URL !== process.env.DATABASE_URL) {
+    throw new Error('Project Management migration requires PROJECT_MANAGEMENT_MIGRATION_DATABASE_URL to be explicitly set to the approved target.');
+  }
+  migrations.push({ version: 3, name: 'client_project_management', file: '003_client_project_management.postgres.sql' });
+}
 const pool = await createPostgresPool();
 let client;
 
@@ -62,7 +69,9 @@ try {
     await client.query('ROLLBACK').catch(() => {});
     throw error;
   }
-  console.log('PostgreSQL migrations are current. No application records were imported.');
+  console.log(projectManagementRequested
+    ? 'Requested PostgreSQL migrations are current. No application records were imported.'
+    : 'Core PostgreSQL migrations are current. Project Management migration was not requested; no application records were imported.');
 } catch (error) {
   console.error(`PostgreSQL migration stopped safely${error?.code ? ` (${error.code})` : ''}: ${error.message}`);
   process.exitCode = 1;

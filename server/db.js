@@ -134,7 +134,7 @@ function seedSqliteIfEmpty() {
   })();
 }
 
-function postgresPoolConfig(connectionString) {
+function postgresPoolConfig(connectionString, { options } = {}) {
   const config = parseConnectionString(connectionString);
   const ssl = { ...(config.ssl || {}), rejectUnauthorized: true };
   if (process.env.DATABASE_SSL_CA) ssl.ca = process.env.DATABASE_SSL_CA;
@@ -144,12 +144,13 @@ function postgresPoolConfig(connectionString) {
   config.connectionTimeoutMillis = 10000;
   config.idleTimeoutMillis = 10000;
   config.application_name = 'ziyotech-backend';
+  if (options) config.options = options;
   return config;
 }
 
-export async function createPostgresPool(connectionString = process.env.DATABASE_URL) {
+export async function createPostgresPool(connectionString = process.env.DATABASE_URL, options = {}) {
   if (!connectionString) throw new Error('DATABASE_URL is required for PostgreSQL.');
-  return new Pool(postgresPoolConfig(connectionString));
+  return new Pool(postgresPoolConfig(connectionString, options));
 }
 
 async function verifyPostgresSchema() {
@@ -163,16 +164,33 @@ async function verifyPostgresSchema() {
   if (Number(result.rows[0]?.version) < 2) throw new Error('PostgreSQL schema migrations are incomplete.');
 }
 
-export async function initializeDatabase({ forceSqlite = false, sqlitePath, seedDemoData = true } = {}) {
+export async function initializeDatabase({ forceSqlite = false, sqlitePath, seedDemoData = true, databaseUrl = process.env.DATABASE_URL, postgresOptions } = {}) {
   if (initialization) return initialization;
   initialization = (async () => {
-    if (process.env.NODE_ENV === 'production' && (!process.env.DATABASE_URL || forceSqlite)) {
-      throw new Error('Production requires DATABASE_URL and PostgreSQL; refusing to initialize SQLite.');
+    const requestedTestSqlite = process.env.NODE_ENV === 'test' && Boolean(forceSqlite || sqlitePath || process.env.SQLITE_PATH);
+    if (forceSqlite && !requestedTestSqlite) {
+      throw new Error('SQLite is available only to isolated tests; application runtime requires PostgreSQL.');
     }
 
-    if (process.env.DATABASE_URL && !forceSqlite) {
+    if (requestedTestSqlite) {
+      const filename = sqlitePath || process.env.SQLITE_PATH;
+      if (!filename) throw new Error('Isolated SQLite tests require an explicit SQLITE_PATH.');
+      provider = 'sqlite';
+      sqlite = new Database(filename);
+      sqlite.pragma('journal_mode = WAL');
+      sqlite.exec(SQLITE_SCHEMA);
+      ensureSqliteColumns();
+      if (seedDemoData) seedSqliteIfEmpty();
+      return;
+    }
+
+    if (!databaseUrl) {
+      throw new Error('DATABASE_URL is required. PostgreSQL is the only application runtime database.');
+    }
+
+    if (databaseUrl) {
       provider = 'postgres';
-      pool = await createPostgresPool();
+      pool = await createPostgresPool(databaseUrl, postgresOptions);
       try {
         await pool.query('SELECT 1');
         await verifyPostgresSchema();
@@ -184,14 +202,6 @@ export async function initializeDatabase({ forceSqlite = false, sqlitePath, seed
       }
       return;
     }
-
-    provider = 'sqlite';
-    const filename = sqlitePath || process.env.SQLITE_PATH || path.join(path.dirname(fileURLToPath(import.meta.url)), 'ziyo_sales_ai.db');
-    sqlite = new Database(filename);
-    sqlite.pragma('journal_mode = WAL');
-    sqlite.exec(SQLITE_SCHEMA);
-    ensureSqliteColumns();
-    if (seedDemoData) seedSqliteIfEmpty();
   })();
   try { await initialization; } catch (error) { initialization = undefined; throw error; }
 }

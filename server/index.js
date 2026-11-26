@@ -346,6 +346,8 @@ function authOriginIsAllowed(req) {
   if (!isProduction) {
     allowed.add('http://localhost:3000');
     allowed.add('http://127.0.0.1:3000');
+    allowed.add('http://localhost:3001');
+    allowed.add('http://127.0.0.1:3001');
     allowed.add('http://localhost:5173');
   }
   return allowed.has(origin);
@@ -933,10 +935,19 @@ function validateProjectFields(body = {}) {
   return { title, description, scope, status, startDate, targetCompletionDate, estimatedCompletionDate, actualCompletionDate };
 }
 
+const isProjectManagementEnabled = process.env.PROJECT_MANAGEMENT_ENABLED === 'true';
+const projectManagementUnavailable = (_req, res, next) => {
+  if (!isProjectManagementEnabled) return res.status(503).json({ error: 'Project Management is temporarily unavailable.' });
+  return next();
+};
+
+app.use('/api/admin/client-projects', projectManagementUnavailable);
+app.use('/api/client-portal', projectManagementUnavailable);
+
 app.get('/api/admin/client-projects', rejectUntrustedAuthOrigin, requireAdminAuth, async (_req, res) => {
   try { return res.json(await getAdminCompanyDashboard()); }
   catch (error) {
-    if (isProjectManagementSchemaMissing(error)) return res.status(503).json({ error: 'Project Management database tables are not installed. Apply the approved local SQLite migration first.' });
+    if (isProjectManagementSchemaMissing(error)) return res.status(503).json({ error: 'Project Management PostgreSQL tables are not installed. They require a separately approved PostgreSQL migration.' });
     return res.status(500).json({ error: 'Client project management could not be loaded.' });
   }
 });
@@ -1456,7 +1467,7 @@ async function startServer() {
     setInterval(() => { void expireInactiveAnalyticsSessions().catch(() => {}); }, 60 * 1000).unref();
   }
   app.listen(PORT, HOST, () => {
-    console.log(`ZiyoTech Sales AI backend running on port ${PORT} (${process.env.DATABASE_URL ? 'postgres' : 'sqlite'})`);
+    console.log(`ZiyoTech Sales AI backend running on port ${PORT} (postgres)`);
   });
 }
 

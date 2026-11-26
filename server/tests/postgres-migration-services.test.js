@@ -4,6 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
+process.env.NODE_ENV = 'test';
+
 test('async services preserve auth, business, and analytics behavior on an isolated SQLite database', async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'ziyotech-pg-migration-'));
   const sqlitePath = path.join(directory, 'test.db');
@@ -12,7 +14,7 @@ test('async services preserve auth, business, and analytics behavior on an isola
   const { initializeDatabase, getDb, closeDatabase, convertPlaceholders } = await import('../db.js');
   const previousNodeEnv = process.env.NODE_ENV;
   process.env.NODE_ENV = 'production';
-  await assert.rejects(initializeDatabase(), /Production requires DATABASE_URL and PostgreSQL/);
+  await assert.rejects(initializeDatabase(), /DATABASE_URL is required\. PostgreSQL is the only application runtime database/);
   await closeDatabase();
   if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
   else process.env.NODE_ENV = previousNodeEnv;

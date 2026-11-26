@@ -95,7 +95,7 @@ export const AdminLoginView: React.FC<AdminLoginViewProps> = ({ onBackToSite, on
               <button type="submit" disabled={isSubmitting} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_30px_rgba(59,130,246,0.35)] transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-wait disabled:opacity-60">{isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}{isSubmitting ? copy.signingIn : copy.submit}</button>
             </form>
           )}
-          <p className="mt-5 rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-[11px] leading-relaxed text-slate-400">Sign-in is verified by the backend. Sessions are stored in SQLite and held in an HttpOnly cookie.</p>
+          <p className="mt-5 rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-[11px] leading-relaxed text-slate-400">Sign-in is verified by the backend. Sessions are stored in PostgreSQL and held in an HttpOnly cookie.</p>
         </section>
       </main>
     </div>

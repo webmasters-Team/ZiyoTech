@@ -185,7 +185,7 @@ export const VisitorAnalyticsTracker: React.FC = () => {
       }
       if (!cancelled) {
         // A later manual retry reuses the same event ID, so a lost response
-        // cannot create a duplicate page view in SQLite.
+        // cannot create a duplicate page view in PostgreSQL.
         if (lastPageView.current === pagePath) lastPageView.current = '';
         setTrackingError(true);
       }

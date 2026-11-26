@@ -1,7 +1,11 @@
+import dotenv from 'dotenv';
 import readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { closeDatabase, initializeDatabase } from './db.js';
 import { getActiveAdminAccounts, getAdminCredentialState, hashAdminPassword, saveAdminCredential } from './adminAuthService.js';
+
+dotenv.config({ quiet: true });
+dotenv.config({ path: '.env.supabase.local', quiet: true });
 
 function hiddenPrompt(label) {
   return new Promise((resolve, reject) => {
@@ -51,7 +55,7 @@ async function main() {
     ? admins.find((item) => item.id === requestedAccountId)
     : admins.length === 1 ? admins[0] : null;
   if (!account) throw new Error(admins.length === 0
-    ? 'No active SQLite administrator exists. This command does not create or promote accounts.'
+    ? 'No active PostgreSQL administrator exists. This command does not create or promote accounts.'
     : 'Select one existing admin explicitly with --account-id <uid>. This command does not create or promote accounts.');
 
   const existing = await getAdminCredentialState(account.id);

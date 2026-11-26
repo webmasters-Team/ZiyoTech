@@ -7,6 +7,8 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import Database from 'better-sqlite3';
 
+process.env.NODE_ENV = 'test';
+
 async function unusedPort() {
   const server = net.createServer();
   await new Promise((resolve, reject) => server.listen(0, '127.0.0.1', resolve).once('error', reject));
@@ -15,7 +17,7 @@ async function unusedPort() {
   return port;
 }
 
-async function startIsolatedServer(serverPath, databasePath, cwd, port) {
+async function startIsolatedServer(serverPath, databasePath, cwd, port, { projectManagementEnabled = false } = {}) {
   const childEnv = {
     ...process.env,
     NODE_ENV: 'test',
@@ -23,6 +25,7 @@ async function startIsolatedServer(serverPath, databasePath, cwd, port) {
     PORT: String(port),
     HOST: '127.0.0.1',
     ZIYOTECH_SKIP_ANALYTICS_MAINTENANCE: '1',
+    PROJECT_MANAGEMENT_ENABLED: projectManagementEnabled ? 'true' : 'false',
     CLIENT_ACCESS_CODE_PEPPER: 'isolated-project-access-pepper-32-bytes-minimum',
   };
   delete childEnv.DATABASE_URL;
@@ -84,15 +87,29 @@ test('SQLite Project Management API supports authenticated company/project workf
     const probePort = await unusedPort();
     const probe = await startIsolatedServer(serverPath, databasePath, directory, probePort);
     child = probe.child;
-    const preMigrationLogin = await fetch(`${probe.baseUrl}/api/admin/login`, {
+    const disabledManagement = await fetch(`${probe.baseUrl}/api/admin/client-projects`);
+    assert.equal(disabledManagement.status, 503);
+    assert.equal((await disabledManagement.json()).error, 'Project Management is temporarily unavailable.');
+    await stopIsolatedServer(child);
+    child = null;
+
+    const enabledProbe = await startIsolatedServer(serverPath, databasePath, directory, await unusedPort(), { projectManagementEnabled: true });
+    child = enabledProbe.child;
+    const localCors = await fetch(`${enabledProbe.baseUrl}/api/admin/login`, {
+      method: 'OPTIONS',
+      headers: { Origin: 'http://127.0.0.1:3001', 'Access-Control-Request-Method': 'POST' },
+    });
+    assert.equal(localCors.headers.get('access-control-allow-origin'), 'http://127.0.0.1:3001');
+    assert.equal(localCors.headers.get('access-control-allow-credentials'), 'true');
+    const preMigrationLogin = await fetch(`${enabledProbe.baseUrl}/api/admin/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'ProjectTestAdmin', password: 'isolated-project-test-password' }),
     });
     assert.equal(preMigrationLogin.status, 200);
     const preMigrationCookie = cookieHeader(preMigrationLogin);
-    const missingSchema = await fetch(`${probe.baseUrl}/api/admin/client-projects`, { headers: { Cookie: preMigrationCookie } });
+    const missingSchema = await fetch(`${enabledProbe.baseUrl}/api/admin/client-projects`, { headers: { Cookie: preMigrationCookie } });
     assert.equal(missingSchema.status, 503);
-    assert.match((await missingSchema.json()).error, /local SQLite migration/i);
+    assert.match((await missingSchema.json()).error, /separately approved PostgreSQL migration/i);
     await stopIsolatedServer(child);
     child = null;
 
@@ -102,7 +119,7 @@ test('SQLite Project Management API supports authenticated company/project workf
     migratedFixture.close();
 
     const port = await unusedPort();
-    const started = await startIsolatedServer(serverPath, databasePath, directory, port);
+    const started = await startIsolatedServer(serverPath, databasePath, directory, port, { projectManagementEnabled: true });
     child = started.child;
     const baseUrl = started.baseUrl;
 

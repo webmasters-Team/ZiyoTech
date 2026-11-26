@@ -86,6 +86,8 @@ export const ClientProjectManagementView: React.FC = () => {
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<string | null>(null);
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  const [companySearch, setCompanySearch] = useState('');
+  const [activeCompanyId, setActiveCompanyId] = useState<string | null>(null);
   const [revealedCodes, setRevealedCodes] = useState<Record<string, string>>({});
   const [codeExpiry, setCodeExpiry] = useState<Record<string, string>>({});
   const [companyDraft, setCompanyDraft] = useState({ companyName: '', contactPerson: '', email: '', phone: '', description: '' });
@@ -261,6 +263,11 @@ export const ClientProjectManagementView: React.FC = () => {
 
   const formGrid = 'grid gap-3 sm:grid-cols-2 xl:grid-cols-3';
   const sectionClass = 'rounded-2xl border border-slate-800 bg-slate-900/45 p-4 sm:p-5';
+  const matchingCompanies = (data?.companies || []).filter((company) =>
+    company.companyName.toLocaleLowerCase().includes(companySearch.trim().toLocaleLowerCase()));
+  const visibleCompanies = activeCompanyId
+    ? matchingCompanies.filter((company) => company.id === activeCompanyId)
+    : matchingCompanies.slice(0, 6);
 
   return <section className="space-y-5" aria-labelledby="client-project-management-title">
     <header className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
@@ -282,14 +289,19 @@ export const ClientProjectManagementView: React.FC = () => {
     </form>}
 
     {loading && <div className={sectionClass}><RefreshCw className="mr-2 inline h-4 w-4 animate-spin text-cyan-300" />{t.loading}</div>}
+    {!loading && (data?.companies.length || 0) > 0 && <div className="flex flex-col gap-2 sm:flex-row">
+      <input type="search" aria-label="Search all companies" placeholder="Search companies by name" value={companySearch} onChange={(event) => { setCompanySearch(event.target.value); setActiveCompanyId(null); }} className={`${inputClass} sm:max-w-md`} />
+      {activeCompanyId && <button type="button" className={buttonClass} onClick={() => setActiveCompanyId(null)}>Back to companies</button>}
+    </div>}
     {!loading && data?.companies.length === 0 && <div className={sectionClass}><Building2 className="mb-2 h-5 w-5 text-cyan-300" />{t.noCompanies}</div>}
-    {!loading && data?.companies.map((company) => {
-      const companyProjects = data.projects.filter((project) => project.companyId === company.id);
+    {!loading && (data?.companies.length || 0) > 0 && visibleCompanies.length === 0 && <div className={sectionClass}>No companies match your search.</div>}
+    {!loading && visibleCompanies.map((company) => {
+      const companyProjects = (data?.projects || []).filter((project) => project.companyId === company.id);
           const projectDraft = projectDrafts[company.id] || { title: '', description: '', scope: '', startDate: '', targetCompletionDate: '', estimatedCompletionDate: '' };
       return <article key={company.id} className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/40">
         <header className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-800 p-4 sm:p-5">
           <div className="flex min-w-0 items-start gap-3"><Building2 className="mt-1 h-5 w-5 shrink-0 text-cyan-300" /><div className="min-w-0"><h3 className="truncate text-base font-bold text-white">{company.companyName}</h3><p className="mt-1 text-xs text-slate-400">{[company.contactPerson, company.email, company.phone].filter(Boolean).join(' · ')}</p><span className={`mt-2 inline-flex rounded-full px-2 py-1 text-[10px] ${company.status === 'active' ? 'bg-emerald-500/10 text-emerald-300' : 'bg-slate-800 text-slate-400'}`}>{company.status === 'active' ? t.active : t.inactive} · {companyProjects.length} {t.projects.toLocaleLowerCase()}</span></div></div>
-          <div className="flex flex-wrap gap-2"><button type="button" className={buttonClass} onClick={() => startCompanyEdit(company)}>{t.edit}</button><button type="button" className={buttonClass} onClick={() => void run(async () => { await requestJson(`/api/admin/client-projects/companies/${company.id}/status`, { method: 'PATCH', body: { status: company.status === 'active' ? 'inactive' : 'active' } }); await refreshAll(); })}>{company.status === 'active' ? t.deactivate : t.activate}</button></div>
+          <div className="flex flex-wrap gap-2"><button type="button" className={buttonClass} onClick={() => setActiveCompanyId(company.id)}>{t.select}</button><button type="button" className={buttonClass} onClick={() => startCompanyEdit(company)}>{t.edit}</button><button type="button" className={buttonClass} onClick={() => void run(async () => { await requestJson(`/api/admin/client-projects/companies/${company.id}/status`, { method: 'PATCH', body: { status: company.status === 'active' ? 'inactive' : 'active' } }); await refreshAll(); })}>{company.status === 'active' ? t.deactivate : t.activate}</button></div>
         </header>
         <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] sm:p-5">
           <section className="rounded-xl border border-slate-800 bg-slate-950/50 p-4" aria-label={t.code}>
