@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { API_BASE_URL } from './lib/api';
 import { createPortal } from 'react-dom';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { PlatformProvider } from './context/PlatformContext';
@@ -61,17 +62,14 @@ type SpeechRecognitionLike = {
 };
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
-const ASSISTANT_API_BASE = (
-  import.meta.env.VITE_ASSISTANT_API_BASE_URL ||
-  (import.meta.env.DEV ? 'http://localhost:4000' : '')
-).replace(/\/+$/, '');
+const ASSISTANT_API_BASE = API_BASE_URL;
 
-async function hasProvisionedVisitorAdminSession() {
+async function hasAuthenticatedAdminSession() {
   try {
-    const response = await fetch(`${ASSISTANT_API_BASE}/api/visitor-analytics/access`, { credentials: 'include' });
-    if (!response.ok) return false;
-    const result = await response.json().catch(() => ({}));
-    return result.allowed === true;
+    const response = await fetch(`${ASSISTANT_API_BASE}/api/admin/session`, { credentials: 'include' });
+    if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return false;
+    const result = await response.json() as { authenticated?: boolean; user?: { id?: unknown; email?: unknown; name?: unknown } };
+    return result.authenticated === true && typeof result.user?.id === 'string' && typeof result.user.email === 'string' && typeof result.user.name === 'string';
   } catch {
     return false;
   }
@@ -1838,10 +1836,11 @@ function AppContent() {
       if (path === '/admin') {
         setCurrentPage('admin-login');
         setIsAdminAuthenticated(false);
-        void hasProvisionedVisitorAdminSession().then((allowed) => {
+        void hasAuthenticatedAdminSession().then((allowed) => {
           if (allowed && window.location.pathname === path) {
             setIsAdminAuthenticated(true);
             setCurrentPage('platform');
+            window.history.replaceState({}, '', '/app');
           }
         });
         return;
@@ -1850,8 +1849,27 @@ function AppContent() {
       if (path === '/app' || path.startsWith('/app/')) {
         setCurrentPage('platform');
         setIsAdminAuthenticated(false);
-        void hasProvisionedVisitorAdminSession().then((allowed) => {
-          if (window.location.pathname.startsWith('/app')) setIsAdminAuthenticated(allowed);
+        void hasAuthenticatedAdminSession().then((allowed) => {
+          if (!window.location.pathname.startsWith('/app')) return;
+          setIsAdminAuthenticated(allowed);
+          if (!allowed) {
+            setCurrentPage('admin-login');
+            window.history.replaceState({}, '', '/admin');
+          }
+        });
+        return;
+      }
+
+      if (path === '/sales-ai-admin') {
+        window.history.replaceState({}, '', '/admin');
+        setCurrentPage('admin-login');
+        setIsAdminAuthenticated(false);
+        void hasAuthenticatedAdminSession().then((allowed) => {
+          if (allowed && window.location.pathname === '/admin') {
+            setIsAdminAuthenticated(true);
+            setCurrentPage('platform');
+            window.history.replaceState({}, '', '/app');
+          }
         });
         return;
       }
@@ -1904,7 +1922,7 @@ function AppContent() {
     }
 
     if (page === 'platform') {
-      void hasProvisionedVisitorAdminSession().then((allowed) => {
+      void hasAuthenticatedAdminSession().then((allowed) => {
         setIsAdminAuthenticated(allowed);
         setCurrentPage(allowed ? 'platform' : 'admin-login');
         navigateTo(allowed ? '/app' : '/admin', allowed ? 'platform' : 'admin-login');

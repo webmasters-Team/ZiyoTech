@@ -4,5 +4,27 @@ dist/
 coverage/
 .DS_Store
 *.log
+# Local environment files and private configuration. Keep only the safe template tracked.
 .env*
 !.env.example
+# Local databases, WAL/SHM companions, backups, and database dumps.
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.backup
+*.bak
+*.dump
+*.sql.gz
+*-dump.sql
+backups/
+.local-backups/
+# Private keys, certificates, and exported credentials.
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../lib/api';
 
-const API_BASE_URL = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
 const adminRequest = (url: string, init: RequestInit = {}) => {
   const csrfCookie = document.cookie.split('; ').find((part) => /(?:^|__Host-)ziyo_(?:admin_)?csrf=/.test(part));
   const csrfToken = decodeURIComponent(csrfCookie?.slice(csrfCookie.indexOf('=') + 1) || '');

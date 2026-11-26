@@ -2,12 +2,13 @@ import { getDb } from './db.js';
 
 const db = getDb();
 
-export function createBusiness({ id, name, type, language, status = 'active', botEnabled = 1 }) {
+export async function createBusiness({ id, name, type, language, status = 'active', botEnabled = 1 }) {
   const tenantId = id || crypto.randomUUID();
 
-  db.prepare(`
-    INSERT OR IGNORE INTO businesses (id, name, type, status, language, bot_enabled)
+  await db.prepare(`
+    INSERT INTO businesses (id, name, type, status, language, bot_enabled)
     VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT (id) DO NOTHING
   `).run(
     tenantId,
     name,
@@ -20,10 +21,10 @@ export function createBusiness({ id, name, type, language, status = 'active', bo
   return getBusinessById(tenantId);
 }
 
-export function getBusinessById(id) {
-  return db.prepare('SELECT * FROM businesses WHERE id = ?').get(id) || null;
+export async function getBusinessById(id) {
+  return (await db.prepare('SELECT * FROM businesses WHERE id = ?').get(id)) || null;
 }
 
-export function listBusinesses() {
+export async function listBusinesses() {
   return db.prepare('SELECT * FROM businesses ORDER BY created_at DESC').all();
 }

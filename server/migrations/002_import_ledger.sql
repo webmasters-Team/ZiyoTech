@@ -1,0 +1,5 @@
+CREATE TABLE sqlite_imports (
+  source_sha256 TEXT PRIMARY KEY,
+  imported_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  table_counts JSONB NOT NULL
+);

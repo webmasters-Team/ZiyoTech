@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../lib/api';
 
 interface SalesAiLoginProps {
   onLogin: () => void;
@@ -16,7 +17,7 @@ export default function SalesAiLogin({ onLogin }: SalesAiLoginProps) {
     setLoading(true);
 
     try {
-      const apiBase = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
+      const apiBase = API_BASE_URL;
       const response = await fetch(`${apiBase}/api/admin/login`, {
         method: 'POST',
         credentials: 'include',

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../lib/api';
 
 interface SalesAiDashboardProps {
   businessId?: string;
@@ -17,7 +18,7 @@ export default function SalesAiDashboard({ businessId = 'demo-business' }: Sales
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const response = await fetch(`http://localhost:4000/api/catalog?businessId=${encodeURIComponent(businessId)}`);
+        const response = await fetch(`${API_BASE_URL}/api/catalog?businessId=${encodeURIComponent(businessId)}`);
         const data = await response.json();
         setProducts(
           (data || []).slice(0, 4).map((product: any) => ({

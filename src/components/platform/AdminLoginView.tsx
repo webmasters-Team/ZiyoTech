@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../lib/api';
 import { ArrowLeft, Eye, EyeOff, LoaderCircle, ShieldCheck } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 import { useLanguage } from '../../context/LanguageContext';
@@ -8,7 +9,6 @@ interface AdminLoginViewProps {
   onLogin: () => void;
 }
 
-const API_BASE_URL = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
 
 export const AdminLoginView: React.FC<AdminLoginViewProps> = ({ onBackToSite, onLogin }) => {
   const { language } = useLanguage();
@@ -24,13 +24,10 @@ export const AdminLoginView: React.FC<AdminLoginViewProps> = ({ onBackToSite, on
     const verifyExistingSession = async () => {
       try {
         const secureSession = await fetch(`${API_BASE_URL}/api/admin/session`, { credentials: 'include' });
-        if (secureSession.ok) {
-          if (!cancelled) onLogin();
-          return;
-        }
-        const firebaseAdmin = await fetch(`${API_BASE_URL}/api/visitor-analytics/access`, { credentials: 'include' });
-        const access = await firebaseAdmin.json().catch(() => ({})) as { allowed?: boolean };
-        if (!cancelled && access.allowed) onLogin();
+        if (!secureSession.ok || !secureSession.headers.get('content-type')?.includes('application/json')) return;
+        const session = await secureSession.json() as { authenticated?: boolean; user?: { id?: unknown; email?: unknown; name?: unknown } };
+        const validIdentity = typeof session.user?.id === 'string' && typeof session.user.email === 'string' && typeof session.user.name === 'string';
+        if (!cancelled && session.authenticated === true && validIdentity) onLogin();
       } catch {
         // Login remains available when no existing session can be checked.
       } finally {
@@ -54,8 +51,10 @@ export const AdminLoginView: React.FC<AdminLoginViewProps> = ({ onBackToSite, on
         method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username.trim(), password }),
       });
-      const data = await response.json().catch(() => ({})) as { error?: string; user?: unknown };
-      if (!response.ok || !data.user) {
+      const isJson = response.headers.get('content-type')?.includes('application/json');
+      const data = isJson ? await response.json().catch(() => ({})) as { success?: boolean; error?: string; user?: { id?: unknown; email?: unknown; name?: unknown } } : {};
+      const validIdentity = typeof data.user?.id === 'string' && typeof data.user.email === 'string' && typeof data.user.name === 'string';
+      if (!response.ok || data.success !== true || !validIdentity) {
         setError(data.error || (language === 'ru' ? 'Не удалось выполнить вход.' : language === 'uz' ? 'Kirish amalga oshmadi.' : 'Sign-in failed.'));
         return;
       }
@@ -96,7 +95,7 @@ export const AdminLoginView: React.FC<AdminLoginViewProps> = ({ onBackToSite, on
               <button type="submit" disabled={isSubmitting} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_30px_rgba(59,130,246,0.35)] transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-wait disabled:opacity-60">{isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}{isSubmitting ? copy.signingIn : copy.submit}</button>
             </form>
           )}
-          <p className="mt-5 rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-[11px] leading-relaxed text-slate-400">Sign-in is verified by the backend. Sessions are stored in SQLite and held in an HttpOnly cookie.</p>
+          <p className="mt-5 rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-[11px] leading-relaxed text-slate-400">Sign-in is verified by the backend. Sessions are stored in PostgreSQL and held in an HttpOnly cookie.</p>
         </section>
       </main>
     </div>

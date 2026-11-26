@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { API_BASE_URL } from '../lib/api';
 import {
   applyActionCode,
   checkActionCode,
@@ -46,7 +47,7 @@ function isSafeGooglePhotoUrl(value: string | null | undefined): value is string
   }
 }
 
-const AUTH_API_BASE = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')).replace(/\/+$/, '');
+const AUTH_API_BASE = API_BASE_URL;
 
 async function authRequest(path: string, options: RequestInit = {}) {
   let response: Response;
@@ -91,7 +92,7 @@ function firebaseErrorMessage(error: unknown, language: string) {
     'auth/configuration-not-found': 'Firebase Authentication is not configured for this project or the requested sign-in provider is unavailable. In Firebase Console, enable Authentication and the Google provider, set the project support email, and verify the Web app uses the same project.',
     'auth/invalid-api-key': 'The Firebase Web API key is invalid. Copy the Web app configuration from the same Firebase project and restart the frontend.',
     'auth/unauthorized-domain': 'This website domain is not authorized in Firebase Authentication.',
-    ACCOUNT_SERVICE_UNAVAILABLE: 'The account server at localhost:4000 is unreachable. Start it with `npm run dev:server`; if it is running, check CORS and the browser network panel.',
+    ACCOUNT_SERVICE_UNAVAILABLE: 'The account service could not be reached. Check your connection and try again.',
   };
   const ru: Record<string, string> = {
     'auth/email-already-in-use': 'Для этой почты уже существует аккаунт. Войдите или сбросьте пароль.',
@@ -106,7 +107,7 @@ function firebaseErrorMessage(error: unknown, language: string) {
     'auth/configuration-not-found': 'Firebase Authentication не настроен для этого проекта или провайдер входа недоступен. В консоли Firebase включите Authentication и Google, укажите контактный email проекта и проверьте настройки Web-приложения.',
     'auth/invalid-api-key': 'API-ключ Firebase Web недействителен. Скопируйте конфигурацию Web-приложения из того же проекта и перезапустите frontend.',
     'auth/unauthorized-domain': 'Этот домен не разрешён в Firebase Authentication.',
-    ACCOUNT_SERVICE_UNAVAILABLE: 'Сервер аккаунтов на localhost:4000 недоступен. Запустите его командой `npm run dev:server`; если он уже работает, проверьте CORS и сетевые ошибки браузера.',
+    ACCOUNT_SERVICE_UNAVAILABLE: 'Не удалось подключиться к сервису аккаунтов. Проверьте подключение и попробуйте ещё раз.',
   };
   const uz: Record<string, string> = {
     'auth/email-already-in-use': 'Bu email uchun akkaunt mavjud. Kiring yoki parolni tiklang.',
@@ -121,7 +122,7 @@ function firebaseErrorMessage(error: unknown, language: string) {
     'auth/configuration-not-found': 'Bu Firebase loyihasida Authentication sozlanmagan yoki kirish provayderi mavjud emas. Firebase Console’da Authentication va Google provayderini yoqing, loyiha aloqa emailini kiriting va Web ilovasi sozlamalari shu loyihaga tegishli ekanini tekshiring.',
     'auth/invalid-api-key': 'Firebase Web API kaliti yaroqsiz. Shu loyihadan Web ilova konfiguratsiyasini ko‘chirib, frontendni qayta ishga tushiring.',
     'auth/unauthorized-domain': 'Bu sayt domeni Firebase Authentication’da ruxsat etilmagan.',
-    ACCOUNT_SERVICE_UNAVAILABLE: 'localhost:4000 dagi akkaunt serveriga ulanib bo‘lmadi. `npm run dev:server` buyrug‘i bilan ishga tushiring; ishlayotgan bo‘lsa, CORS va brauzer tarmoq xatolarini tekshiring.',
+    ACCOUNT_SERVICE_UNAVAILABLE: 'Akkaunt xizmatiga ulanib bo‘lmadi. Internet aloqasini tekshirib, qayta urinib ko‘ring.',
   };
   return (language === 'ru' ? ru : language === 'uz' ? uz : en)[code] || (error instanceof Error ? error.message : 'Unable to complete the request.');
 }

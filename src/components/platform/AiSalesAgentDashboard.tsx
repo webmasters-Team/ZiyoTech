@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { API_BASE_URL } from '../../lib/api';
 import {
   Activity,
   ArrowUpRight,
@@ -81,7 +82,6 @@ type SettingsPayload = {
   humanHandoff: string;
 };
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 const tabs: { key: TabKey; label: string; icon: React.ComponentType<any> }[] = [
   { key: 'overview', label: 'Overview', icon: Activity },
@@ -258,12 +258,12 @@ export const AiSalesAgentDashboard: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     void adminFetch(`${API_BASE_URL}/api/admin/session`).then(async (response) => {
-      if (!response.ok) throw new Error('Administrator session is missing. Sign in again.');
-      const payload = await response.json() as { user?: { id: string; name: string; email: string } };
+      if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) throw new Error('Administrator session is missing. Sign in again.');
+      const payload = await response.json() as { authenticated?: boolean; user?: { id?: unknown; name?: unknown; email?: unknown } };
+      if (payload.authenticated !== true || typeof payload.user?.id !== 'string' || typeof payload.user.name !== 'string' || typeof payload.user.email !== 'string') throw new Error('Administrator session is missing. Sign in again.');
       if (cancelled) return;
       if (payload.user) {
         setSessionUser(payload.user);
-        localStorage.setItem('ziyo-sales-admin', JSON.stringify(payload.user));
       }
       await refreshBusinessData();
     }).catch((sessionError) => {

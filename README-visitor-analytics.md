@@ -50,7 +50,7 @@ Administrator endpoints:
 - `GET /api/visitor-analytics/users` and `/users/:userId`
 - `GET /api/visitor-analytics/recent`
 
-Administrator analytics endpoints require either an active verified Firebase account session whose SQLite `user_accounts.role` is `admin`, or a database-backed Admin ID session created for an existing active admin. APIs do not accept a client-side auth flag, a browser-stored bearer token, or a client-supplied account ID. Administrator roles must be explicitly provisioned by a trusted database operator; there is no self-service role assignment.
+Administrator analytics endpoints require either an active verified Firebase account session whose PostgreSQL `user_accounts.role` is `admin`, or a database-backed Admin ID session created for an existing active admin. APIs do not accept a client-side auth flag, a browser-stored bearer token, or a client-supplied account ID. Administrator roles must be explicitly provisioned by a trusted database operator; there is no self-service role assignment.
 
 ## Local verification and setup
 
@@ -68,11 +68,11 @@ For an existing active admin role, run this local interactive setup once:
 npm run setup:admin-credentials -- --username <admin-id>
 ```
 
-The command uses the single existing active admin account; if multiple admins exist, select the intended existing account with `--account-id <uid>`. It never creates or promotes an account. Password entry is hidden, requires at least 14 characters, and stores only a per-password salt and scrypt hash in SQLite. If a credential already exists, replacement requires typing `REPLACE`; that also revokes current Admin ID sessions. Run the command in an interactive terminal. Never put the password in `.env`, source code, or chat.
+The command uses the single existing active admin account; if multiple admins exist, select the intended existing account with `--account-id <uid>`. It never creates or promotes an account. Password entry is hidden, requires at least 14 characters, and stores only a per-password salt and scrypt hash in PostgreSQL. If a credential already exists, replacement requires typing `REPLACE`; that also revokes current Admin ID sessions. Run the command in an interactive terminal. Never put the password in `.env`, source code, or chat.
 
-The web login accepts the configured Admin ID and password. The backend rate-limits failed login attempts and stores a hash of each random session token in SQLite. The raw session stays in an HttpOnly, SameSite cookie (Secure in production), expires after eight hours, and is revoked on sign-out or credential replacement. Mutating administrator APIs require a CSRF token and check the active SQLite admin role on every request. Ordinary Firebase sign-in and its separate user session remain available.
+The web login accepts the configured Admin ID and password. The backend rate-limits failed login attempts and stores a hash of each random session token in PostgreSQL. The raw session stays in an HttpOnly, SameSite cookie (Secure in production), expires after eight hours, and is revoked on sign-out or credential replacement. Mutating administrator APIs require a CSRF token and check the active PostgreSQL admin role on every request. Ordinary Firebase sign-in and its separate user session remain available.
 
-The analytics overview and charts use UTC time buckets. The range control supports the last 24 hours, 7 UTC calendar days, 30 UTC calendar days, or a custom UTC calendar-date range up to 366 days. Unique tracked visitors are distinct anonymous browser IDs plus distinct registered account IDs with a visit; guests and authenticated visitors remain separate series. The charts use SQLite session, page-view, and measured active-time records. Empty ranges render empty states, never sample values.
+The analytics overview and charts use UTC time buckets. The range control supports the last 24 hours, 7 UTC calendar days, 30 UTC calendar days, or a custom UTC calendar-date range up to 366 days. Unique tracked visitors are distinct anonymous browser IDs plus distinct registered account IDs with a visit; guests and authenticated visitors remain separate series. The charts use PostgreSQL session, page-view, and measured active-time records. Empty ranges render empty states, never sample values.
 
 No geolocation provider or additional package is required. Country will remain blank unless a trusted, country-only edge header is later integrated and validated.
 
