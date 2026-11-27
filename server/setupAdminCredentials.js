@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { assertNonProductionDatabaseTarget } from './databaseTargetGuard.js';
 import readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { closeDatabase, initializeDatabase } from './db.js';
@@ -6,6 +7,7 @@ import { getActiveAdminAccounts, getAdminCredentialState, hashAdminPassword, sav
 
 dotenv.config({ quiet: true });
 dotenv.config({ path: '.env.supabase.local', quiet: true });
+assertNonProductionDatabaseTarget();
 
 function hiddenPrompt(label) {
   return new Promise((resolve, reject) => {

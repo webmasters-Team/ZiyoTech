@@ -4,9 +4,11 @@ import path from 'node:path';
 import Database from 'better-sqlite3';
 import dotenv from 'dotenv';
 import { createPostgresPool } from './db.js';
+import { assertNonProductionDatabaseTarget } from './databaseTargetGuard.js';
 
 dotenv.config({ quiet: true });
-dotenv.config({ path: '.env.supabase.local', override: true, quiet: true });
+dotenv.config({ path: '.env.supabase.local', quiet: true });
+assertNonProductionDatabaseTarget();
 
 const TABLES = [
   'businesses', 'user_accounts', 'products', 'leads', 'conversations', 'ai_settings',

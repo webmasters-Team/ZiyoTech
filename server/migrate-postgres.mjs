@@ -3,9 +3,12 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPostgresPool } from './db.js';
+import { assertNonProductionDatabaseTarget } from './databaseTargetGuard.js';
 
 dotenv.config({ quiet: true });
 dotenv.config({ path: '.env.supabase.local', quiet: true });
+
+assertNonProductionDatabaseTarget();
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDirectory = path.join(here, 'migrations');
@@ -19,6 +22,11 @@ if (projectManagementRequested) {
     throw new Error('Project Management migration requires PROJECT_MANAGEMENT_MIGRATION_DATABASE_URL to be explicitly set to the approved target.');
   }
   migrations.push({ version: 3, name: 'client_project_management', file: '003_client_project_management.postgres.sql' });
+  migrations.push({ version: 4, name: 'client_company_profile', file: '004_client_company_profile.postgres.sql' });
+  migrations.push({ version: 5, name: 'client_project_directory', file: '005_client_project_directory.postgres.sql' });
+  migrations.push({ version: 6, name: 'client_project_category_priority', file: '006_client_project_category_priority.postgres.sql' });
+  migrations.push({ version: 7, name: 'advanced_project_workspace', file: '007_advanced_project_workspace.postgres.sql' });
+  migrations.push({ version: 8, name: 'project_management_privilege_hardening', file: '008_project_management_privilege_hardening.postgres.sql' });
 }
 const pool = await createPostgresPool();
 let client;

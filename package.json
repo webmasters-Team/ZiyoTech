@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev": "node scripts/dev.mjs",
     "start:backend": "node server/index.js",
     "test": "node --test",
     "db:backup:sqlite": "node server/backup-sqlite.cjs",
     "db:check:postgres": "node server/check-postgres.mjs",
+    "test:postgres:project-management": "node server/run-postgres-project-management-check.mjs",
     "db:migrate:postgres": "node server/migrate-postgres.mjs",
     "db:import:sqlite": "node server/import-sqlite-to-postgres.mjs",
     "build": "vite build",

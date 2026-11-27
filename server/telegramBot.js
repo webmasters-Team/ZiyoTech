@@ -1,9 +1,4 @@
 import TelegramBot from 'node-telegram-bot-api';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const MESSAGE_DEDUPE_TTL_MS = 15000;
 const recentMessageIds = new Map();
 
@@ -21,6 +16,10 @@ function isDuplicateTelegramMessage(msg) {
 }
 
 export function createTelegramBot({ onMessage }) {
+  // Read configuration when the server initializes the integration, after its
+  // environment-specific overrides have loaded. Capturing this at module load
+  // can accidentally retain a production token in local development.
+  const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
   if (!TOKEN) {
     console.warn('TELEGRAM_BOT_TOKEN not set. Telegram bot is disabled.');
     return null;

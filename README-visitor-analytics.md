@@ -54,7 +54,7 @@ Administrator analytics endpoints require either an active verified Firebase acc
 
 ## Local verification and setup
 
-1. Configure `VITE_ASSISTANT_API_BASE_URL` for the backend origin (development defaults to `http://localhost:4000`).
+1. Configure `VITE_ASSISTANT_API_BASE_URL` for the backend origin (development defaults to `http://localhost:4001`).
 2. Sign in through the existing account flow so a verified account row exists.
 3. A trusted operator may assign dashboard access only after verifying the account owner, for example with `UPDATE user_accounts SET role = 'admin' WHERE id = '<verified Firebase UID>';`. Do not expose a role-update operation to normal users. Sign in to that account in the site before opening **Admin Dashboard** in the existing platform navigation so the existing HttpOnly account session is present.
 4. Configure `AUTH_ALLOWED_ORIGINS`/`APP_URL` for deployed origins, then restart the backend under the existing operational procedure.

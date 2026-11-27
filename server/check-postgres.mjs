@@ -1,16 +1,29 @@
 import dotenv from 'dotenv';
 import { parse as parseConnectionString } from 'pg-connection-string';
 import { createPostgresPool } from './db.js';
+import { assertNonProductionDatabaseTarget } from './databaseTargetGuard.js';
 
 dotenv.config({ quiet: true });
-dotenv.config({ path: '.env.supabase.local', override: true, quiet: true });
+dotenv.config({ path: '.env.supabase.local', quiet: true });
 
 let pool;
 try {
+  assertNonProductionDatabaseTarget();
+  const connection = process.env.DATABASE_URL ? parseConnectionString(process.env.DATABASE_URL) : null;
+  const projectReference = (connection?.user || '').match(/^postgres\.([a-z0-9]+)$/i)?.[1];
   pool = await createPostgresPool();
   const result = await pool.query('SELECT 1 AS connected');
-  const connection = parseConnectionString(process.env.DATABASE_URL);
   const identity = await pool.query('SELECT current_database() AS database, current_schema() AS schema');
+  const serverVersion = await pool.query('SHOW server_version');
+  const migrations = await pool.query('SELECT version, name FROM public.schema_migrations ORDER BY version').catch(() => ({ rows: [] }));
+  const privateTables = await pool.query(`SELECT c.relname AS table_name, c.relrowsecurity AS rls_enabled,
+      has_table_privilege('anon', c.oid, 'SELECT') AS anon_select,
+      has_table_privilege('authenticated', c.oid, 'SELECT') AS authenticated_select
+    FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relkind = 'r'
+      AND c.relname IN ('client_project_stages','client_project_update_resources','client_project_feedback','client_project_milestone_approvals')
+    ORDER BY c.relname`);
+  const stageCount = await pool.query('SELECT COUNT(*)::bigint AS count FROM public.client_project_stages').catch(() => ({ rows: [{ count: null }] }));
   const tables = await pool.query(`SELECT table_name FROM information_schema.tables
     WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name`);
   const publicTables = [];
@@ -25,8 +38,15 @@ try {
     tlsVerified: true,
     target: {
       provider: sessionPooler ? 'supabase-session-pooler' : 'other',
+      projectReference,
       database: identity.rows[0].database,
       schema: identity.rows[0].schema,
+      serverVersion: serverVersion.rows[0].server_version,
+    },
+    migrationVersions: migrations.rows,
+    advancedWorkspace: {
+      stageRows: Number(stageCount.rows[0].count ?? 0),
+      privateTables: privateTables.rows,
     },
     publicTables,
   }));

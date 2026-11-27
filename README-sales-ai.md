@@ -1,4 +1,4 @@
-# ZiyoTech Sales AI MVP
+﻿# ZiyoTech Sales AI MVP
 
 This project contains the first working MVP for the ZiyoTech AI Sales Agent.
 
@@ -24,17 +24,21 @@ This project contains the first working MVP for the ZiyoTech AI Sales Agent.
 
    npm install
 
-2. Start the backend
+2. Start the frontend and PostgreSQL backend together
 
-   npm run dev:server
+   npm run dev
+
+   Frontend: http://localhost:3000
+   Admin panel: http://localhost:3000/admin
+   Backend API: http://localhost:4001
 
 3. Test the API
 
-   curl http://localhost:4000/api/health
+   curl http://localhost:4001/api/health
 
 4. Send a sample sales message
 
-   curl -X POST http://localhost:4000/api/chat \
+   curl -X POST http://localhost:4001/api/chat \
      -H "Content-Type: application/json" \
      -d '{"message":"Menga 3 million so\'mga yaxshi telefon kerak","customerName":"Ali","channel":"telegram"}'
 

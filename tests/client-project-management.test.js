@@ -17,7 +17,7 @@ async function unusedPort() {
   return port;
 }
 
-async function startIsolatedServer(serverPath, databasePath, cwd, port, { projectManagementEnabled = false } = {}) {
+async function startIsolatedServer(serverPath, databasePath, cwd, port, { projectManagementEnabled = false, clientPortalEnabled = false } = {}) {
   const childEnv = {
     ...process.env,
     NODE_ENV: 'test',
@@ -26,6 +26,7 @@ async function startIsolatedServer(serverPath, databasePath, cwd, port, { projec
     HOST: '127.0.0.1',
     ZIYOTECH_SKIP_ANALYTICS_MAINTENANCE: '1',
     PROJECT_MANAGEMENT_ENABLED: projectManagementEnabled ? 'true' : 'false',
+    CLIENT_PORTAL_ENABLED: clientPortalEnabled ? 'true' : 'false',
     CLIENT_ACCESS_CODE_PEPPER: 'isolated-project-access-pepper-32-bytes-minimum',
   };
   delete childEnv.DATABASE_URL;
@@ -60,6 +61,10 @@ test('SQLite Project Management API supports authenticated company/project workf
   const databasePath = path.join(directory, 'isolated-test.db');
   const serverPath = path.resolve('server/index.js');
   const migrationPath = path.resolve('server/migrations/003_client_project_management.sql');
+  const profileMigrationPath = path.resolve('server/migrations/004_client_company_profile.sqlite.sql');
+  const projectDirectoryMigrationPath = path.resolve('server/migrations/005_client_project_directory.sqlite.sql');
+  const projectClassificationMigrationPath = path.resolve('server/migrations/006_client_project_category_priority.sqlite.sql');
+  const advancedWorkspaceMigrationPath = path.resolve('server/migrations/007_advanced_project_workspace.sqlite.sql');
   const previousDatabaseUrl = process.env.DATABASE_URL;
   delete process.env.DATABASE_URL;
   const dbModule = await import('../server/db.js');
@@ -90,6 +95,8 @@ test('SQLite Project Management API supports authenticated company/project workf
     const disabledManagement = await fetch(`${probe.baseUrl}/api/admin/client-projects`);
     assert.equal(disabledManagement.status, 503);
     assert.equal((await disabledManagement.json()).error, 'Project Management is temporarily unavailable.');
+    const disabledCompanyList = await fetch(`${probe.baseUrl}/api/admin/client-projects/companies`);
+    assert.equal(disabledCompanyList.status, 503);
     await stopIsolatedServer(child);
     child = null;
 
@@ -97,9 +104,9 @@ test('SQLite Project Management API supports authenticated company/project workf
     child = enabledProbe.child;
     const localCors = await fetch(`${enabledProbe.baseUrl}/api/admin/login`, {
       method: 'OPTIONS',
-      headers: { Origin: 'http://127.0.0.1:3001', 'Access-Control-Request-Method': 'POST' },
+      headers: { Origin: 'http://localhost:3000', 'Access-Control-Request-Method': 'POST' },
     });
-    assert.equal(localCors.headers.get('access-control-allow-origin'), 'http://127.0.0.1:3001');
+    assert.equal(localCors.headers.get('access-control-allow-origin'), 'http://localhost:3000');
     assert.equal(localCors.headers.get('access-control-allow-credentials'), 'true');
     const preMigrationLogin = await fetch(`${enabledProbe.baseUrl}/api/admin/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -107,6 +114,11 @@ test('SQLite Project Management API supports authenticated company/project workf
     });
     assert.equal(preMigrationLogin.status, 200);
     const preMigrationCookie = cookieHeader(preMigrationLogin);
+    const clientPortalHeld = await fetch(`${enabledProbe.baseUrl}/api/client-portal/access`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: '0000000000' }),
+    });
+    assert.equal(clientPortalHeld.status, 503);
+    assert.equal((await clientPortalHeld.json()).error, 'Client portal access is not available yet.');
     const missingSchema = await fetch(`${enabledProbe.baseUrl}/api/admin/client-projects`, { headers: { Cookie: preMigrationCookie } });
     assert.equal(missingSchema.status, 503);
     assert.match((await missingSchema.json()).error, /separately approved PostgreSQL migration/i);
@@ -116,17 +128,23 @@ test('SQLite Project Management API supports authenticated company/project workf
     const migratedFixture = new Database(databasePath);
     migratedFixture.pragma('foreign_keys = ON');
     migratedFixture.exec(await fs.readFile(migrationPath, 'utf8'));
+    migratedFixture.exec(await fs.readFile(profileMigrationPath, 'utf8'));
+    migratedFixture.exec(await fs.readFile(projectDirectoryMigrationPath, 'utf8'));
+    migratedFixture.exec(await fs.readFile(projectClassificationMigrationPath, 'utf8'));
+    migratedFixture.exec(await fs.readFile(advancedWorkspaceMigrationPath, 'utf8'));
     migratedFixture.close();
 
     const port = await unusedPort();
-    const started = await startIsolatedServer(serverPath, databasePath, directory, port, { projectManagementEnabled: true });
+    const started = await startIsolatedServer(serverPath, databasePath, directory, port, { projectManagementEnabled: true, clientPortalEnabled: true });
     child = started.child;
     const baseUrl = started.baseUrl;
 
     const missingAuth = await fetch(`${baseUrl}/api/admin/client-projects`);
     assert.equal(missingAuth.status, 401);
     assert.equal(missingAuth.headers.get('content-type')?.includes('application/json'), true);
-
+    const missingCompanyListAuth = await fetch(`${baseUrl}/api/admin/client-projects/companies`);
+    assert.equal(missingCompanyListAuth.status, 401);
+    assert.equal(missingCompanyListAuth.headers.get('content-type')?.includes('application/json'), true);
     const invalidLogin = await fetch(`${baseUrl}/api/admin/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'ProjectTestAdmin', password: 'incorrect-isolated-password' }),
@@ -164,6 +182,51 @@ test('SQLite Project Management API supports authenticated company/project workf
     };
     const companyA = await createCompany('Project Test Company A');
     const companyB = await createCompany('Project Test Company B');
+    const searchTarget = await createCompany('Ziyo Search Target');
+    for (let index = 1; index <= 6; index += 1) await createCompany(`Other Search Company ${index}`);
+
+    const companyListResponse = await fetch(`${baseUrl}/api/admin/client-projects/companies`, { headers: adminHeaders });
+    assert.equal(companyListResponse.status, 200);
+    const companyList = await companyListResponse.json();
+    assert.equal(companyList.length, 6);
+    assert.equal(companyList.some((company) => 'code' in company || 'verifierHash' in company || 'verifier_hash' in company), false);
+    const companyASearch = await fetch(`${baseUrl}/api/admin/client-projects/companies?search=${encodeURIComponent('Project Test Company A')}`, { headers: adminHeaders });
+    assert.equal(companyASearch.status, 200);
+    assert.deepEqual((await companyASearch.json()).map((company) => company.id), [companyA.id]);
+    const companyBSearch = await fetch(`${baseUrl}/api/admin/client-projects/companies?search=${encodeURIComponent('Project Test Company B')}`, { headers: adminHeaders });
+    assert.equal(companyBSearch.status, 200);
+    assert.deepEqual((await companyBSearch.json()).map((company) => company.id), [companyB.id]);
+    const searchedCompanies = await fetch(`${baseUrl}/api/admin/client-projects/companies?search=ZIYO%20SEARCH%20TARGET`, { headers: adminHeaders });
+    assert.equal(searchedCompanies.status, 200);
+    assert.deepEqual((await searchedCompanies.json()).map((company) => company.id), [searchTarget.id]);
+
+    const provisionResponse = await fetch(`${baseUrl}/api/admin/client-projects/companies/provision`, {
+      method: 'POST', headers: adminHeaders,
+      body: JSON.stringify({
+        companyName: 'Provisioned Project Company', contactPerson: 'Provision Contact', email: 'provision@example.test',
+        phone: '+998933333333', website: 'https://provision.example.test', industry: 'Technology',
+        description: 'Company summary', internalNotes: 'Admin-only note', initialProjectName: 'Initial project',
+        initialProjectDescription: 'Prepared during company registration', initialProjectStatus: 'planning',
+        initialProjectStartDate: '2026-11-01', initialProjectExpectedCompletionDate: '2027-02-01',
+      }),
+    });
+    assert.equal(provisionResponse.status, 201);
+    const provisioned = await provisionResponse.json();
+    assert.equal(provisioned.company.website, 'https://provision.example.test/');
+    assert.equal(provisioned.company.industry, 'Technology');
+    assert.equal(provisioned.company.internalNotes, 'Admin-only note');
+    assert.equal(provisioned.initialProject.title, 'Initial project');
+    assert.match(provisioned.accessCode.code, /^[A-Z0-9]{15}$/);
+    const verifierDb = new Database(databasePath, { readonly: true });
+    const storedVerifier = verifierDb.prepare('SELECT verifier_hash AS verifierHash FROM client_company_access_codes WHERE company_id = ?').get(provisioned.company.id);
+    assert.equal(storedVerifier.verifierHash === provisioned.accessCode.code, false);
+    assert.match(storedVerifier.verifierHash, /^[a-f0-9]{64}$/);
+    verifierDb.close();
+
+    const duplicateCompany = await fetch(`${baseUrl}/api/admin/client-projects/companies`, {
+      method: 'POST', headers: adminHeaders, body: JSON.stringify({ companyName: 'project test company a' }),
+    });
+    assert.equal(duplicateCompany.status, 409);
 
     const editCompany = await fetch(`${baseUrl}/api/admin/client-projects/companies/${companyA.id}`, {
       method: 'PUT', headers: adminHeaders,
@@ -210,7 +273,7 @@ test('SQLite Project Management API supports authenticated company/project workf
     assert.equal(rotateCodeResponse.status, 201);
     const issuedCode = (await rotateCodeResponse.json()).code;
     assert.notEqual(issuedCode, firstCode);
-    assert.match(issuedCode, /^[0-9A-HJKMNP-TV-Z]{10,15}$/);
+    assert.match(issuedCode, /^[A-Z0-9]{15}$/);
 
     const milestoneResponse = await fetch(`${baseUrl}/api/admin/client-projects/projects/${projectA.id}/milestones`, {
       method: 'POST', headers: adminHeaders,
@@ -272,7 +335,13 @@ test('SQLite Project Management API supports authenticated company/project workf
 
     const allProjects = await fetch(`${baseUrl}/api/admin/client-projects`, { headers: adminHeaders });
     assert.equal(allProjects.status, 200);
-    assert.equal((await allProjects.json()).projects.length, 2);
+    assert.equal((await allProjects.json()).projects.length, 3);
+
+    const invalidClientLogin = await fetch(`${baseUrl}/api/client-portal/access`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: 'INVALID00000000' }),
+    });
+    assert.equal(invalidClientLogin.status, 401);
+    assert.equal((await invalidClientLogin.json()).error, 'The access code is invalid or no longer active.');
 
     const clientLogin = await fetch(`${baseUrl}/api/client-portal/access`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: issuedCode }),
@@ -301,6 +370,17 @@ test('SQLite Project Management API supports authenticated company/project workf
     });
     assert.equal(clientLogout.status, 200);
     assert.equal((await fetch(`${baseUrl}/api/client-portal/projects`, { headers: clientHeaders })).status, 401);
+
+    const secondClientLogin = await fetch(`${baseUrl}/api/client-portal/access`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: issuedCode }),
+    });
+    assert.equal(secondClientLogin.status, 200);
+    const secondClientCookie = cookieHeader(secondClientLogin);
+    const rotatedCode = await fetch(`${baseUrl}/api/admin/client-projects/companies/${companyA.id}/access-code`, {
+      method: 'POST', headers: adminHeaders, body: JSON.stringify({}),
+    });
+    assert.equal(rotatedCode.status, 201);
+    assert.equal((await fetch(`${baseUrl}/api/client-portal/projects`, { headers: { Cookie: secondClientCookie } })).status, 401);
 
     const revoke = await fetch(`${baseUrl}/api/admin/client-projects/companies/${companyA.id}/access-code`, {
       method: 'DELETE', headers: adminHeaders,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ArrowRight,
   BadgeCheck,
@@ -22,12 +22,18 @@ import mainPromotionalVideo from '../../video_for_main.mp4';
 import { ServicesVideoShowcase } from './ServicesVideoShowcase';
 import { LiveProjectShowcase } from './LiveProjectShowcase';
 import { CompanyProjectAccess } from './CompanyProjectAccess';
+import type { ClientPortalActions, ClientPortalProject } from './ClientProjectDashboard';
 
 interface AboutSectionProps {
   onNavigate: (page: string) => void;
 }
 
 export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
+  const [clientPortal, setClientPortal] = useState<{ authenticated: boolean; companyName: string; projects: ClientPortalProject[]; onLogout?: () => Promise<void>; actions?: ClientPortalActions }>({ authenticated: false, companyName: '', projects: [] });
+  const handleClientAuthenticated = useCallback((companyName: string, projects: ClientPortalProject[], logout: () => Promise<void>, actions: ClientPortalActions) => {
+    setClientPortal({ authenticated: true, companyName, projects, onLogout: logout, actions });
+  }, []);
+  const handleClientSignedOut = useCallback(() => setClientPortal({ authenticated: false, companyName: '', projects: [] }), []);
   const stats = [
     { value: '2021', label: 'Founded', icon: Building2 },
     { value: 'Japan + Korea', label: 'International projects', icon: Globe2 },
@@ -265,8 +271,18 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        <CompanyProjectAccess />
-        <LiveProjectShowcase onNavigate={onNavigate} />
+        <CompanyProjectAccess
+          onAuthenticated={handleClientAuthenticated}
+          onSignedOut={handleClientSignedOut}
+        />
+        <LiveProjectShowcase
+          onNavigate={onNavigate}
+          clientAuthenticated={clientPortal.authenticated}
+          clientProjects={clientPortal.authenticated ? clientPortal.projects : undefined}
+          clientCompanyName={clientPortal.companyName}
+          onClientLogout={clientPortal.onLogout}
+          clientActions={clientPortal.actions}
+        />
 
         <div className="rounded-[32px] border border-slate-800 bg-linear-to-r from-slate-900 via-[#0a1521] to-[#07121d] p-7 sm:p-10">
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">

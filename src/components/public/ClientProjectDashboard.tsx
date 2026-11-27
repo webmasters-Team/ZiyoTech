@@ -15,13 +15,29 @@ export type ClientPortalProject = {
   actualCompletionDate?: string;
   progress: {
     overallPercentage: number;
+    completedTaskCount?: number;
+    remainingTaskCount?: number;
+    completedMilestoneCount?: number;
+    remainingMilestoneCount?: number;
+    overdueMilestoneCount?: number;
+    estimatedDaysRemaining?: number | null;
+    currentStage?: { id: string; title: string; status: string } | null;
     phases: Array<{ milestoneId: string; label: string; completionPercentage: number }>;
     history: Array<{ date: string; plannedPercentage: number; actualPercentage: number }>;
   };
+  stages?: Array<{ id: string; title: string; description: string; stageOrder: number; status: string; startDate?: string; dueDate?: string; completionPercentage: number; completedAt?: string }>;
   milestones: Array<{ id: string; title: string; description: string; weight: number; dueDate?: string; status: string; completionPercentage: number; taskIds: string[] }>;
-  tasks: Array<{ id: string; milestoneId: string; title: string; description: string; status: string; completionPercentage: number; dueDate?: string }>;
-  updates: Array<{ id: string; title: string; body: string; createdAt: string; authorDisplayName: string }>;
-  resources: Array<{ id: string; resourceType: 'image' | 'video' | 'document' | 'link'; title: string; description: string; fileName: string; externalUrl: string }>;
+  tasks: Array<{ id: string; milestoneId: string; stageId?: string | null; title: string; description: string; status: string; completionPercentage: number; dueDate?: string }>;
+  updates: Array<{ id: string; title: string; body: string; stageId?: string; stageTitle?: string; createdAt: string; authorDisplayName: string; resources?: Array<{ id: string; title: string; resourceType: 'image' | 'video' | 'document' | 'link' }> }>;
+  resources: Array<{ id: string; resourceType: 'image' | 'video' | 'document' | 'link'; category?: string; title: string; description: string; fileName: string; externalUrl: string; createdAt?: string }>;
+  feedback?: Array<{ id: string; milestoneId?: string | null; kind: string; message: string; status: string; adminResponse: string; createdAt: string }>;
+  approvals?: Array<{ id: string; milestoneId: string; status: string; clientComment: string; requestedAt: string }>;
+  activity?: Array<{ id: string; eventType: string; entityType: string; createdAt: string }>;
+};
+
+export type ClientPortalActions = {
+  submitFeedback: (projectId: string, kind: 'feedback' | 'revision_request', message: string, milestoneId?: string) => Promise<void>;
+  resolveApproval: (approvalId: string, status: 'approved' | 'changes_requested', comment: string) => Promise<void>;
 };
 
 const uiCopy = {

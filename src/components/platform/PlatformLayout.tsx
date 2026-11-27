@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 import { ProjectRequestsView } from './ProjectRequestsView';
 import { AiSalesAgentDashboard } from './AiSalesAgentDashboard';
-import { ClientProjectManagementView } from './ClientProjectManagementView';
+import { CompanyManagementStageOneView } from './CompanyManagementStageOneView';
 
 const VISITOR_ANALYTICS_API_BASE = API_BASE_URL;
 const PROJECT_MANAGEMENT_ENABLED = import.meta.env.VITE_PROJECT_MANAGEMENT_ENABLED === 'true';
@@ -54,6 +54,7 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite, on
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
   const [canViewVisitorAnalytics, setCanViewVisitorAnalytics] = useState(false);
+  const [canManageProjects, setCanManageProjects] = useState(false);
   const [logoutError, setLogoutError] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -74,6 +75,16 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite, on
   }, []);
 
   useEffect(() => {
+    if (!PROJECT_MANAGEMENT_ENABLED) return;
+    const controller = new AbortController();
+    fetch(`${API_BASE_URL}/api/admin/project-management/access`, { credentials: 'include', signal: controller.signal })
+      .then(async (response) => response.ok ? response.json() as Promise<{ allowed?: boolean }> : { allowed: false })
+      .then((result) => { if (!controller.signal.aborted) setCanManageProjects(result.allowed === true); })
+      .catch(() => { if (!controller.signal.aborted) setCanManageProjects(false); });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
     if (canViewVisitorAnalytics) setActiveTab('visitor-analytics');
   }, [canViewVisitorAnalytics]);
 
@@ -81,7 +92,7 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite, on
 
   const navItems = [
     ...(canViewVisitorAnalytics ? [{ id: 'visitor-analytics', label: language === 'ru' ? 'Панель администратора' : language === 'en' ? 'Admin Dashboard' : 'Admin paneli', icon: Radio }] : []),
-    ...(canViewVisitorAnalytics && PROJECT_MANAGEMENT_ENABLED ? [{ id: 'project-management', label: language === 'ru' ? 'Управление проектами' : language === 'en' ? 'Project Management' : 'Loyihalarni boshqarish', icon: BriefcaseBusiness }] : []),
+    ...(canManageProjects && PROJECT_MANAGEMENT_ENABLED ? [{ id: 'project-management', label: language === 'ru' ? 'Управление проектами' : language === 'en' ? 'Project Management' : 'Loyihalarni boshqarish', icon: BriefcaseBusiness }] : []),
     { id: 'overview', label: t.platform.overview, icon: LayoutDashboard },
     { id: 'inbox', label: t.platform.inbox, icon: MessageSquare, badge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined },
     { id: 'sales-agent', label: 'AI Sales Agent', icon: Bot },
@@ -124,7 +135,7 @@ export const PlatformLayout: React.FC<PlatformLayoutProps> = ({ onBackToSite, on
       case 'visitor-analytics':
         return canViewVisitorAnalytics ? <VisitorAnalyticsView /> : <OverviewView onNavigateTab={setActiveTab} />;
       case 'project-management':
-        return canViewVisitorAnalytics && PROJECT_MANAGEMENT_ENABLED ? <ClientProjectManagementView /> : <OverviewView onNavigateTab={setActiveTab} />;
+        return canManageProjects && PROJECT_MANAGEMENT_ENABLED ? <CompanyManagementStageOneView /> : <OverviewView onNavigateTab={setActiveTab} />;
       case 'team':
         return <TeamView />;
       case 'settings':

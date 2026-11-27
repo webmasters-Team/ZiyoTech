@@ -261,7 +261,7 @@ async function execute(sql, args, mode) {
     const release = inTransaction ? null : await acquireSqliteLock();
     try {
       const statement = sqlite.prepare(sql);
-      const params = normalizeParams(args);
+      const params = normalizeParams(args).map((value) => typeof value === 'boolean' ? Number(value) : value);
       if (mode === 'get') return statement.get(...params);
       if (mode === 'all') return statement.all(...params);
       const result = statement.run(...params);

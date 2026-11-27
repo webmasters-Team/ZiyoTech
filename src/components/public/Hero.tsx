@@ -1,16 +1,16 @@
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
+import websiteDevelopmentImage from '../../assets/services/website-development.webp';
+import ecommerceSolutionsImage from '../../assets/services/ecommerce-solutions.webp';
+import aiAgentsAutomationImage from '../../assets/services/ai-agents-automation.webp';
+import digitalMarketingImage from '../../assets/services/digital-marketing.webp';
+import photoVideoContentImage from '../../assets/services/photo-video-content.webp';
+import brandingDesignImage from '../../assets/services/branding-design.webp';
 import {
   Sparkles,
   ArrowRight,
   Play,
-  Zap,
-  ShoppingCart,
-  Bot,
-  Megaphone,
-  Camera,
-  Palette,
   Instagram,
   CheckCircle2,
   ShieldCheck,
@@ -58,12 +58,12 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   };
 
   const quickServices = [
-    { id: 'web-dev', name: t.hero.quickServices.web, icon: Zap, color: 'text-blue-500' },
-    { id: 'ecommerce', name: t.hero.quickServices.ecommerce, icon: ShoppingCart, color: 'text-cyan-500' },
-    { id: 'ai-automation', name: t.hero.quickServices.ai, icon: Bot, color: 'text-sky-500' },
-    { id: 'digital-marketing', name: t.hero.quickServices.marketing, icon: Megaphone, color: 'text-indigo-500' },
-    { id: 'media-content', name: t.hero.quickServices.content, icon: Camera, color: 'text-blue-600' },
-    { id: 'branding', name: t.hero.quickServices.branding, icon: Palette, color: 'text-cyan-600' },
+    { id: 'web-dev', name: t.hero.quickServices.web, image: websiteDevelopmentImage },
+    { id: 'ecommerce', name: t.hero.quickServices.ecommerce, image: ecommerceSolutionsImage },
+    { id: 'ai-automation', name: t.hero.quickServices.ai, image: aiAgentsAutomationImage },
+    { id: 'digital-marketing', name: t.hero.quickServices.marketing, image: digitalMarketingImage },
+    { id: 'media-content', name: t.hero.quickServices.content, image: photoVideoContentImage },
+    { id: 'branding', name: t.hero.quickServices.branding, image: brandingDesignImage },
   ];
 
   return (
@@ -168,24 +168,27 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
         <div className={`mt-10 border-t pt-6 sm:mt-14 ${theme === 'dark' ? 'border-white/[0.08]' : 'border-slate-200'}`}>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
             {quickServices.map((qs) => {
-              const Icon = qs.icon;
               return (
                 <button
                   key={qs.id}
                   onClick={() => onNavigate('service-detail', qs.id)}
-                  className={`group flex min-h-[96px] flex-col justify-between rounded-2xl border p-3.5 text-left transition-all sm:min-h-[104px] sm:p-4 ${
+                  className={`group flex min-h-[156px] min-w-0 flex-col gap-2 rounded-2xl border p-2.5 text-left transition-all sm:min-h-[176px] sm:p-3 ${
                     theme === 'dark'
                       ? 'border-slate-800 bg-slate-950/60 text-slate-200 hover:border-slate-700 hover:bg-slate-900'
                       : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
-                  <div className="flex w-full items-center justify-between">
-                    <div className={`rounded-xl p-2 ${theme === 'dark' ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-700'}`}>
-                      <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${qs.color}`} />
-                    </div>
-                    <ArrowRight className="h-3.5 w-3.5 text-slate-400 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+                  <img
+                    src={qs.image}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-[566/356] w-full rounded-xl border border-white/10 object-cover transition-[filter] duration-300 group-hover:brightness-110"
+                  />
+                  <div className="flex w-full min-w-0 flex-1 items-center justify-between gap-1">
+                    <span className="text-xs font-semibold leading-snug sm:text-[13px]">{qs.name}</span>
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </div>
-                  <span className="mt-2 text-xs font-semibold leading-snug sm:text-[13px]">{qs.name}</span>
                 </button>
               );
             })}

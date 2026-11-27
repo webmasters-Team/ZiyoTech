@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { getDb, isUniqueConstraintError } from './db.js';
+import { getDatabaseDialect, getDb, isUniqueConstraintError } from './db.js';
 
 const db = getDb();
 const FIREBASE_CERTS_URL = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
@@ -8,6 +8,11 @@ let cachedKeys = null;
 let cachedKeysUntil = 0;
 
 const hash = (value) => crypto.createHash('sha256').update(value).digest('hex');
+
+export function firebaseAuthTimePredatesCredentialRotation(authTimeSeconds, credentialUpdatedAt) {
+  if (!Number.isInteger(authTimeSeconds) || !Number.isFinite(Date.parse(credentialUpdatedAt))) return true;
+  return authTimeSeconds * 1000 <= Date.parse(credentialUpdatedAt);
+}
 const safeGooglePhotoUrl = (value) => {
   if (typeof value !== 'string' || value.length > 1000) return null;
   try {
@@ -148,6 +153,7 @@ export async function verifyFirebaseIdToken(token, {
     displayName: typeof claims.name === 'string' ? claims.name.slice(0, 100) : '',
     photoUrl: safeGooglePhotoUrl(claims.picture),
     provider,
+    authTimeSeconds: claims.auth_time,
     photoUrlResolved: false,
   };
 
@@ -194,31 +200,42 @@ export async function syncFirebaseProfile(identity) {
   return safeProfile(await db.prepare('SELECT * FROM user_accounts WHERE id = ?').get(identity.uid));
 }
 
-export async function createUserSession(uid) {
-  const user = await db.prepare('SELECT * FROM user_accounts WHERE id = ?').get(uid);
-  if (!user || user.account_status !== 'ACTIVE') {
-    const error = new Error('This account is unavailable.');
-    error.statusCode = 403;
-    throw error;
-  }
-  if (!user.email_verified) {
-    const error = new Error('Verify your email address before signing in.');
-    error.statusCode = 403;
-    error.code = 'EMAIL_NOT_VERIFIED';
-    throw error;
-  }
-
-  const token = crypto.randomBytes(32).toString('hex');
-  const csrfToken = crypto.randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
+export async function createUserSession(uid, authTimeSeconds) {
   const create = db.transaction(async () => {
+    const versionExpression = getDatabaseDialect() === 'postgres' ? 'c.updated_at::text' : 'c.updated_at';
+    const lockClause = getDatabaseDialect() === 'postgres' ? ' FOR UPDATE OF u' : '';
+    const user = await db.prepare(`SELECT u.*, ${versionExpression} AS admin_credential_updated_at
+      FROM user_accounts u LEFT JOIN admin_credentials c ON c.account_id = u.id
+      WHERE u.id = ?${lockClause}`).get(uid);
+    if (!user || user.account_status !== 'ACTIVE') {
+      const error = new Error('This account is unavailable.');
+      error.statusCode = 403;
+      throw error;
+    }
+    if (!user.email_verified) {
+      const error = new Error('Verify your email address before signing in.');
+      error.statusCode = 403;
+      error.code = 'EMAIL_NOT_VERIFIED';
+      throw error;
+    }
+    if (user.admin_credential_updated_at
+      && firebaseAuthTimePredatesCredentialRotation(authTimeSeconds, user.admin_credential_updated_at)) {
+      const error = new Error('Sign in again with the identity provider to continue.');
+      error.statusCode = 401;
+      error.code = 'AUTH_SESSION_REVOKED';
+      throw error;
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const csrfToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
     await db.prepare('DELETE FROM user_sessions WHERE expires_at <= ?').run(new Date().toISOString());
     await db.prepare('INSERT INTO user_sessions (token_hash, user_id, csrf_hash, expires_at) VALUES (?, ?, ?, ?)')
       .run(hash(token), uid, hash(csrfToken), expiresAt);
     await db.prepare('UPDATE user_accounts SET last_login_at = ? WHERE id = ?').run(new Date().toISOString(), uid);
+    return { token, csrfToken, expiresAt, user: safeProfile({ ...user, last_login_at: new Date().toISOString() }) };
   });
-  await create();
-  return { token, csrfToken, expiresAt, user: safeProfile({ ...user, last_login_at: new Date().toISOString() }) };
+  return create();
 }
 
 export async function getUserSession(token) {

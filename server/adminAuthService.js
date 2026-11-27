@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { promisify } from 'node:util';
-import { getDb } from './db.js';
+import { getDatabaseDialect, getDb } from './db.js';
 
 const db = getDb();
 const scrypt = promisify(crypto.scrypt);
@@ -45,29 +45,35 @@ export async function saveAdminCredential({ accountId, username, passwordSalt, p
 
 export async function verifyAdminCredentials(username, password) {
   if (typeof username !== 'string' || typeof password !== 'string' || username.length > 80 || password.length > 1024) return null;
+  const credentialVersionExpression = getDatabaseDialect() === 'postgres' ? 'c.updated_at::text' : 'c.updated_at';
   const row = await db.prepare(`SELECT c.account_id, c.password_salt, c.password_hash, c.hash_params,
-    u.email, u.full_name, u.role, u.account_status, u.email_verified
+    ${credentialVersionExpression} AS credential_version, u.email, u.full_name, u.role, u.account_status, u.email_verified
     FROM admin_credentials c JOIN user_accounts u ON u.id = c.account_id
     WHERE LOWER(c.username) = LOWER(?)`).get(username.trim());
   const candidate = await scrypt(password, row ? Buffer.from(row.password_salt, 'hex') : DUMMY_SALT, 64, SCRYPT_OPTIONS);
   if (!row || row.role !== 'admin' || row.account_status !== 'ACTIVE' || row.email_verified !== 1 || row.hash_params !== 'scrypt-N32768-r8-p1') return null;
   const expected = Buffer.from(row.password_hash, 'hex');
   if (candidate.length !== expected.length || !crypto.timingSafeEqual(candidate, expected)) return null;
-  return { id: row.account_id, email: row.email, name: row.full_name };
+  return { id: row.account_id, email: row.email, name: row.full_name, credentialVersion: row.credential_version };
 }
 
-export async function issueAdminSession(accountId) {
-  const account = await db.prepare("SELECT id, email, full_name AS name FROM user_accounts WHERE id = ? AND role = 'admin' AND account_status = 'ACTIVE' AND email_verified = 1").get(accountId);
-  if (!account) return null;
-  const token = crypto.randomBytes(32).toString('hex');
-  const csrfToken = crypto.randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
-  await db.transaction(async () => {
+export async function issueAdminSession(accountId, expectedCredentialVersion) {
+  return db.transaction(async () => {
+    const credentialVersionExpression = getDatabaseDialect() === 'postgres' ? 'c.updated_at::text' : 'c.updated_at';
+    const lockClause = getDatabaseDialect() === 'postgres' ? ' FOR UPDATE OF c' : '';
+    const account = await db.prepare(`SELECT u.id, u.email, u.full_name AS name,
+        ${credentialVersionExpression} AS credential_version
+      FROM user_accounts u JOIN admin_credentials c ON c.account_id = u.id
+      WHERE u.id = ? AND u.role = 'admin' AND u.account_status = 'ACTIVE' AND u.email_verified = 1${lockClause}`).get(accountId);
+    if (!account || (expectedCredentialVersion !== undefined && account.credential_version !== expectedCredentialVersion)) return null;
+    const token = crypto.randomBytes(32).toString('hex');
+    const csrfToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
     await db.prepare('DELETE FROM admin_sessions WHERE expires_at <= ?').run(new Date().toISOString());
     await db.prepare('INSERT INTO admin_sessions (token_hash, account_id, csrf_hash, expires_at) VALUES (?, ?, ?, ?)')
       .run(hash(token), accountId, hash(csrfToken), expiresAt);
+    return { token, csrfToken, expiresAt, user: { id: account.id, email: account.email, name: account.name } };
   })();
-  return { token, csrfToken, expiresAt, user: account };
 }
 
 export async function getAdminSession(token) {
