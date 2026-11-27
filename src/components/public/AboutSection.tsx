@@ -1,4 +1,20 @@
 import React, { useCallback, useState } from 'react';
+import internationalProjectDeliveryIcon from '../../assets/about/international-project-delivery.webp';
+import founded2021Icon from '../../assets/about/founded-2021.webp';
+import japanKoreaIcon from '../../assets/about/japan-korea.webp';
+import industryResearchIcon from '../../assets/about/industry-research.webp';
+import endToEndOwnershipIcon from '../../assets/about/end-to-end-ownership.webp';
+import crossBorderDeliveryIcon from '../../assets/about/cross-border-delivery.webp';
+import businessReadySystemsIcon from '../../assets/about/business-ready-systems.webp';
+import ziyoTechFoundedJourneyImage from '../../assets/about/journey/ziyotech-founded.webp';
+import sbCollaborationJourneyImage from '../../assets/about/journey/sb-collaboration.webp';
+import internationalExpansionJourneyImage from '../../assets/about/journey/international-expansion.webp';
+import dentalverseJourneyImage from '../../assets/about/journey/dentalverse-journey.webp';
+import dentalverseCaseStudyImage from '../../assets/about/dentalverse-case-study.webp';
+import internationalExperienceImage from '../../assets/about/core-strengths/international-experience.webp';
+import deepIndustryUnderstandingImage from '../../assets/about/core-strengths/deep-industry-understanding.webp';
+import fullOwnershipImage from '../../assets/about/core-strengths/full-ownership.webp';
+import customSolutionsImage from '../../assets/about/core-strengths/custom-solutions.webp';
 import {
   ArrowRight,
   BadgeCheck,
@@ -6,7 +22,6 @@ import {
   Building2,
   CheckCircle2,
   Compass,
-  Factory,
   Globe2,
   MapPinned,
   Palette,
@@ -35,10 +50,10 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
   }, []);
   const handleClientSignedOut = useCallback(() => setClientPortal({ authenticated: false, companyName: '', projects: [] }), []);
   const stats = [
-    { value: '2021', label: 'Founded', icon: Building2 },
-    { value: 'Japan + Korea', label: 'International projects', icon: Globe2 },
-    { value: '6 months', label: 'Industry research', icon: BrainCircuit },
-    { value: '100%', label: 'End-to-end ownership', icon: Rocket },
+    { value: '2021', label: 'Founded', icon: founded2021Icon },
+    { value: 'Japan + Korea', label: 'International projects', icon: japanKoreaIcon },
+    { value: '6 months', label: 'Industry research', icon: industryResearchIcon },
+    { value: '100%', label: 'End-to-end ownership', icon: endToEndOwnershipIcon },
   ];
 
   const journey = [
@@ -46,25 +61,25 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
       year: '2021',
       title: 'ZiyoTech Founded',
       text: 'The beginning of our journey in software development and international technology collaboration.',
-      icon: Building2,
+      icon: ziyoTechFoundedJourneyImage,
     },
     {
       year: 'Tokyo, Japan',
       title: 'SB Collaboration',
       text: 'Our first international collaboration established the foundation for cross-border development.',
-      icon: Globe2,
+      icon: sbCollaborationJourneyImage,
     },
     {
       year: 'South Korea',
       title: 'International Expansion',
       text: 'We expanded our expertise through collaborations with Korean companies and custom engineering projects.',
-      icon: MapPinned,
+      icon: internationalExpansionJourneyImage,
     },
     {
       year: 'Seoul, Korea',
       title: 'Dentalverse',
       text: 'We delivered a complete software platform after six months of deep dentistry research and product engineering.',
-      icon: Target,
+      icon: dentalverseJourneyImage,
     },
   ];
 
@@ -72,22 +87,22 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
     {
       title: 'International Experience',
       desc: 'Experience collaborating with companies in Japan and South Korea.',
-      icon: Globe2,
+      icon: internationalExperienceImage,
     },
     {
       title: 'Deep Industry Understanding',
       desc: 'We study the industry before we design the system.',
-      icon: BrainCircuit,
+      icon: deepIndustryUnderstandingImage,
     },
     {
       title: 'Full Ownership',
       desc: 'From research and design to development, architecture, and deployment.',
-      icon: ShieldCheck,
+      icon: fullOwnershipImage,
     },
     {
       title: 'Custom Solutions',
       desc: 'Every platform is shaped around the client’s real business needs.',
-      icon: Compass,
+      icon: customSolutionsImage,
     },
   ];
 
@@ -116,8 +131,8 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
         <div className="mb-16 grid grid-cols-1 items-stretch gap-7 lg:grid-cols-[1.12fr_0.88fr]">
           <div className="rounded-[30px] border border-slate-800 bg-[#0a1017] p-7 shadow-[0_30px_90px_rgba(2,6,23,0.45)] sm:p-8">
             <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900 text-blue-300">
-                <Globe2 className="h-6 w-6" />
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-900 text-blue-300">
+                <img src={internationalProjectDeliveryIcon} alt="" aria-hidden="true" className="h-full w-full object-cover object-center" />
               </div>
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-slate-400">Global presence</div>
@@ -140,9 +155,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
             </div>
 
             <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {stats.slice(0, 4).map(({ value, label, icon: Icon }) => (
+              {stats.slice(0, 4).map(({ value, label, icon }) => (
                 <div key={label} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                  <Icon className="mb-3 h-5 w-5 text-blue-300" />
+                  <img src={icon} alt="" aria-hidden="true" className="mb-3 h-7 w-7 rounded-lg border border-cyan-300/35 object-cover object-center" />
                   <div className="text-lg font-black text-white">{value}</div>
                   <div className="mt-1 text-[10px] uppercase tracking-[0.17em] text-slate-400">{label}</div>
                 </div>
@@ -160,15 +175,15 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
             </div>
             <div className="grid grid-cols-2 items-stretch gap-4 lg:shrink-0">
               <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
-                  <Users className="h-5 w-5" />
+                <div className="mb-3 flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-cyan-300/35 bg-blue-500/10 text-blue-300">
+                  <img src={crossBorderDeliveryIcon} alt="" aria-hidden="true" className="h-full w-full object-cover object-center" />
                 </div>
                 <div className="text-sm font-bold text-white">Cross-border delivery</div>
                 <div className="mt-1 text-xs text-slate-400">Japan • Korea • global teams</div>
               </div>
               <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-200">
-                  <BadgeCheck className="h-5 w-5" />
+                <div className="mb-3 flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-cyan-300/35 bg-slate-800 text-slate-200">
+                  <img src={businessReadySystemsIcon} alt="" aria-hidden="true" className="h-full w-full object-cover object-center" />
                 </div>
                 <div className="text-sm font-bold text-white">Business-ready systems</div>
                 <div className="mt-1 text-xs text-slate-400">Built for real workflows</div>
@@ -187,10 +202,10 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
           </div>
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {journey.map(({ year, title, text, icon: Icon }) => (
+            {journey.map(({ year, title, text, icon }) => (
               <div key={title} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-800 text-blue-300">
-                  <Icon className="h-5 w-5" />
+                <div className="mb-4 flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-cyan-300/35 bg-slate-800">
+                  <img src={icon} alt="" aria-hidden="true" className="h-full w-full object-cover object-center" />
                 </div>
                 <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400">{year}</div>
                 <h4 className="mb-2 text-lg font-bold text-white">{title}</h4>
@@ -211,8 +226,8 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
 
           <div className="rounded-[30px] border border-slate-800 bg-[#0a121d] p-7 sm:p-8">
             <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800 text-slate-200">
-                <Factory className="h-6 w-6" />
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-800">
+                <img src={dentalverseCaseStudyImage} alt="" aria-hidden="true" className="h-full w-full object-cover object-center" />
               </div>
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">Case study</div>
@@ -259,10 +274,10 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
           </div>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {pillars.map(({ title, desc, icon: Icon }) => (
+            {pillars.map(({ title, desc, icon }) => (
               <div key={title} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 transition-all hover:-translate-y-0.5 hover:border-slate-700">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800 text-blue-300">
-                  <Icon className="h-5 w-5" />
+                <div className="mb-4 flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-800">
+                  <img src={icon} alt="" aria-hidden="true" className="h-full w-full object-cover object-center" />
                 </div>
                 <h4 className="mb-2 text-lg font-bold text-white">{title}</h4>
                 <p className="text-sm leading-relaxed text-slate-300">{desc}</p>

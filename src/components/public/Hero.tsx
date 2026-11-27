@@ -185,9 +185,9 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
                     decoding="async"
                     className="aspect-[566/356] w-full rounded-xl border border-white/10 object-cover transition-[filter] duration-300 group-hover:brightness-110"
                   />
-                  <div className="flex w-full min-w-0 flex-1 items-center justify-between gap-1">
-                    <span className="text-xs font-semibold leading-snug sm:text-[13px]">{qs.name}</span>
-                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+                  <div className="relative flex w-full min-w-0 flex-1 items-center">
+                    <span className="w-full text-center text-xs font-semibold leading-snug sm:text-[13px]">{qs.name}</span>
+                    <ArrowRight className="absolute right-0 h-3.5 w-3.5 shrink-0 text-slate-400 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </div>
                 </button>
               );

@@ -260,7 +260,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['UX Design', 'Brand Experience', 'Clinic Interface'],
     technologies: ['Figma', 'UI/UX', 'Prototype Design', 'Healthcare'],
     metrics: 'Patient-first UX · Interactive Prototype',
-    image: new URL('../5.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/dentalverse-demo.webp', import.meta.url).href,
     imageClassName: 'object-cover scale-100 origin-center object-top',
     link: 'https://www.figma.com/design/PsLCvWSSV5VN3syLxXDvtf/%EB%8D%B4%ED%83%88%EB%B2%84%EC%8A%A4-%ED%94%EB%A1%9D%ED%8A%B8--Copy-?node-id=11-986&p=f&t=NrPb5Q9cdBZg4r4H-0',
   },
@@ -280,7 +280,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['Network Control', 'Dashboard UX', 'Automation'],
     technologies: ['React', 'TypeScript', 'UI/UX', 'Network Monitoring'],
     metrics: 'Live Network Visibility · Real-time Monitoring',
-    image: new URL('../1.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/sdn-controller-demo.webp', import.meta.url).href,
     link: 'https://sdn-albatross.netlify.app/',
   },
   {
@@ -299,7 +299,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['AI Assistant', 'UX Design', 'Automation'],
     technologies: ['React', 'TypeScript', 'AI Workflow', 'User Experience'],
     metrics: 'Smart Interaction · Guided Support',
-    image: new URL('../2.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/ai-pecs-demo.webp', import.meta.url).href,
     link: 'https://nflux.netlify.app/',
   },
   {
@@ -318,7 +318,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['E-commerce', 'Checkout UX', 'Catalog Design'],
     technologies: ['React', 'TypeScript', 'Shop UX', 'Payments'],
     metrics: 'Digital Commerce · Conversion Driven',
-    image: new URL('../8.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/vendora-demo.webp', import.meta.url).href,
     link: 'https://vendorashop-j9rb.onrender.com/',
   },
   {
@@ -337,7 +337,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['Job Portal', 'Hiring UX', 'Recruitment Flow'],
     technologies: ['React', 'TypeScript', 'Job Search UX', 'Candidate Experience'],
     metrics: 'Career Discovery · Hiring Efficiency',
-    image: new URL('../9.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/job-portal-demo.webp', import.meta.url).href,
     link: 'https://job-portal-webmaster.netlify.app/',
   },
   {
@@ -356,7 +356,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['Learning Platform', 'Student Dashboard', 'Course UX'],
     technologies: ['React', 'TypeScript', 'Learning UX', 'Analytics'],
     metrics: 'Course Delivery · Student Progress',
-    image: new URL('../7.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/learnexa-demo.webp', import.meta.url).href,
     link: '#',
   },
   {
@@ -375,7 +375,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['Networking', 'Community UX', 'Meetings'],
     technologies: ['React', 'TypeScript', 'UX Design', 'Community Platform'],
     metrics: 'Networking · Community Events',
-    image: new URL('../10.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/meet-demo.webp', import.meta.url).href,
     link: 'https://webmasters-meets.netlify.app/',
   },
   {
@@ -394,7 +394,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['E-commerce', 'Store UX', 'Checkout Flow'],
     technologies: ['React', 'TypeScript', 'Shop UX', 'Payments'],
     metrics: 'Storefront · Conversion Focused',
-    image: new URL('../11.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/webshop-demo.webp', import.meta.url).href,
     link: 'https://ecommerce-webmasters.netlify.app/',
   },
   {
@@ -413,7 +413,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['Shopping UX', 'Store Design', 'Checkout'],
     technologies: ['React', 'TypeScript', 'E-commerce', 'UX'],
     metrics: 'Online Shopping · Fast Checkout',
-    image: new URL('../12.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/shopit-demo.webp', import.meta.url).href,
     link: 'https://shopit-hobbylink.netlify.app/',
   },
   {
@@ -432,7 +432,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['Learning Platform', 'Course UX', 'Student Dashboard'],
     technologies: ['React', 'TypeScript', 'Learning UX', 'Analytics'],
     metrics: 'Course Access · Student Growth',
-    image: new URL('../13.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/webmasters-learning-demo.webp', import.meta.url).href,
     link: 'https://webmastersolp.netlify.app/',
   },
   {
@@ -451,7 +451,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['School Ops', 'Admin Dashboard', 'Education UX'],
     technologies: ['React', 'TypeScript', 'Admin UX', 'Education'],
     metrics: 'Operations · Academic Tracking',
-    image: new URL('../14.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/school-management-demo.webp', import.meta.url).href,
     link: 'https://school-management-systemm.netlify.app/',
   },
   {
@@ -470,7 +470,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['LMS', 'Course Management', 'Student Analytics'],
     technologies: ['React', 'TypeScript', 'Learning UX', 'Dashboard'],
     metrics: 'Course Delivery · Student Tracking',
-    image: new URL('../15.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/lms-demo.webp', import.meta.url).href,
     link: 'https://weblsm.netlify.app/',
   },
   {
@@ -489,7 +489,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['Photo Platform', 'Memory UX', 'Event Sharing'],
     technologies: ['React', 'TypeScript', 'UX Design', 'Media'],
     metrics: 'Photo Archive · Shared Memories',
-    image: new URL('../16.png', import.meta.url).href,
+    image: new URL('../assets/portfolio/memories-archive-demo.webp', import.meta.url).href,
     link: 'https://memorieswb.netlify.app/',
   },
   {
@@ -508,7 +508,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['AI Agents', 'E-commerce', 'Instagram Automation'],
     technologies: ['React', 'NestJS', 'PostgreSQL', 'Instagram Graph API', 'OpenAI'],
     metrics: '+240% Order Inquiries · Sub-3s Response',
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
+    image: new URL('../assets/portfolio/milano-style-store-demo.webp', import.meta.url).href,
   },
   {
     id: 'demo-2',
@@ -526,7 +526,7 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['Website Development', 'AI Knowledge Base', 'Branding'],
     technologies: ['Next.js', 'Tailwind CSS', 'Vector DB', 'TypeScript'],
     metrics: '+68% Lead Conversion · 94% Automated FAQ',
-    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80',
+    image: new URL('../assets/portfolio/arredo-modern-living-demo.webp', import.meta.url).href,
   },
   {
     id: 'demo-3',
@@ -544,6 +544,6 @@ export const demoCaseStudies: DemoProject[] = [
     services: ['Custom Solutions', 'E-commerce', 'AI Automation'],
     technologies: ['Node.js', 'PostgreSQL', 'Redis', 'BullMQ', 'Telegram Bot API'],
     metrics: '12,400+ Conversations Handled · 850+ Orders',
-    image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=800&q=80',
+    image: new URL('../assets/portfolio/electrohub-smart-tech-demo.webp', import.meta.url).href,
   },
 ];

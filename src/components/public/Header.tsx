@@ -287,7 +287,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
               aria-label="Select Language"
             >
               <Globe className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`} />
-              <img src={currentLangObj.flag} alt="" aria-hidden="true" className="h-3.5 w-5 rounded-[2px] border border-slate-500/40 bg-white object-contain" />
+              <img src={currentLangObj.flag} alt="" aria-hidden="true" className="h-4 w-6 shrink-0 rounded-[3px] border border-slate-500/40 object-contain" />
               <span>{currentLangObj.short}</span>
               <ChevronDown className={`w-3 h-3 transition-transform ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} ${langMenuOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -312,7 +312,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                     }`}
                   >
                     <span>{l.label}</span>
-                    <img src={l.flag} alt="" aria-hidden="true" className="h-3.5 w-5 rounded-[2px] border border-slate-500/40 bg-white object-contain" />
+                    <img src={l.flag} alt="" aria-hidden="true" className="h-4 w-6 shrink-0 rounded-[3px] border border-slate-500/40 object-contain" />
                   </button>
                 ))}
               </div>
@@ -398,7 +398,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                         : theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    <img src={l.flag} alt="" aria-hidden="true" className="h-3.5 w-5 rounded-[2px] border border-slate-500/40 bg-white object-contain" />
+                    <img src={l.flag} alt="" aria-hidden="true" className="h-4 w-6 shrink-0 rounded-[3px] border border-slate-500/40 object-contain" />
                     {l.short}
                   </button>
                 ))}

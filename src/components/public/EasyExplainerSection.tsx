@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
+import aiBusinessAutomationImage from '../../assets/explainer/ai-business-automation.webp';
+import companyServicesImage from '../../assets/explainer/company-services.webp';
+import retailFashionImage from '../../assets/explainer/retail-fashion.webp';
+import furnitureManufacturingImage from '../../assets/explainer/furniture-manufacturing.webp';
+import foodHospitalityImage from '../../assets/explainer/food-hospitality.webp';
+import socialMessagingSalesImage from '../../assets/explainer/social-messaging-sales.webp';
+import onlineStoreCheckoutImage from '../../assets/explainer/online-store-checkout.webp';
+import reelsAdProductionImage from '../../assets/explainer/reels-ad-production.webp';
 import {
   Sparkles,
   ArrowRight,
@@ -7,17 +15,11 @@ import {
   XCircle,
   HelpCircle,
   Zap,
-  ShoppingBag,
-  Building2,
-  UtensilsCrossed,
   Clock,
   TrendingUp,
   MessageSquare,
   ShieldCheck,
   ChevronRight,
-  Bot,
-  Globe,
-  Camera
 } from 'lucide-react';
 
 interface EasyExplainerSectionProps {
@@ -34,7 +36,7 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
   const industries = [
     {
       id: 'ai-agents',
-      icon: Bot,
+      icon: aiBusinessAutomationImage,
       label: {
         uz: 'AI Agentlar & Biznes Avtomatlashtirish',
         ru: 'AI Агенты и Автоматизация Бизнеса',
@@ -48,7 +50,7 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
     },
     {
       id: 'services',
-      icon: Building2,
+      icon: companyServicesImage,
       label: {
         uz: 'Kompaniya Xizmatlari',
         ru: 'Услуги Компании',
@@ -62,7 +64,7 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
     },
     {
       id: 'retail',
-      icon: ShoppingBag,
+      icon: retailFashionImage,
       label: {
         uz: 'Do\'kon & Kiyim-Kechak',
         ru: 'Магазины и Одежда',
@@ -76,7 +78,7 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
     },
     {
       id: 'manufacturing',
-      icon: Building2,
+      icon: furnitureManufacturingImage,
       label: {
         uz: 'Mebel & Ishlab Chiqarish',
         ru: 'Мебель и Производство',
@@ -90,7 +92,7 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
     },
     {
       id: 'hospitality',
-      icon: UtensilsCrossed,
+      icon: foodHospitalityImage,
       label: {
         uz: 'Restoran & Yetkazib Berish',
         ru: 'Рестораны и Доставка',
@@ -107,7 +109,7 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
   const goals = [
     {
       id: 'automation',
-      icon: Bot,
+      icon: socialMessagingSalesImage,
       label: {
         uz: 'Instagram Direct & Telegram\'da 24/7 avtomatik sotish',
         ru: 'Автоматизация продаж в Instagram Direct и Telegram 24/7',
@@ -116,7 +118,7 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
     },
     {
       id: 'website',
-      icon: Globe,
+      icon: onlineStoreCheckoutImage,
       label: {
         uz: 'Click/Payme to\'lovli zamonaviy veb-sayt yoki do\'kon',
         ru: 'Современный сайт или интернет-магазин с оплатой Payme/Click',
@@ -125,7 +127,7 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
     },
     {
       id: 'content',
-      icon: Camera,
+      icon: reelsAdProductionImage,
       label: {
         uz: 'Instagram Reels va mahsulot fotosessiyasi orqali mijoz jalb qilish',
         ru: 'Привлечение клиентов через Reels, контент и рекламу',
@@ -318,7 +320,6 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
 
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
                 {industries.map((ind) => {
-                  const Icon = ind.icon;
                   const isSelected = selectedIndustry === ind.id;
                   return (
                     <button
@@ -331,8 +332,8 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
                       }`}
                     >
                       <div className="mb-2 flex w-full items-center justify-between">
-                        <div className={`rounded-xl p-2 ${isSelected ? 'bg-blue-500/20 text-cyan-300' : 'bg-white/5 text-slate-400'}`}>
-                          <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <div className={`h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-cyan-300/35 ${isSelected ? 'bg-blue-500/20' : 'bg-white/5'}`}>
+                          <img src={ind.icon} alt="" aria-hidden="true" className="h-full w-full object-cover object-center" />
                         </div>
                         {isSelected && <CheckCircle2 className="h-4 w-4 text-cyan-400" />}
                       </div>
@@ -362,7 +363,6 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
 
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
                 {goals.map((goal) => {
-                  const Icon = goal.icon;
                   const isSelected = selectedGoal === goal.id;
                   return (
                     <button
@@ -374,8 +374,8 @@ export const EasyExplainerSection: React.FC<EasyExplainerSectionProps> = ({ onNa
                           : 'border-white/8 bg-white/2 text-slate-300 hover:bg-white/5 hover:text-white'
                       }`}
                     >
-                      <div className={`shrink-0 rounded-xl p-2.5 ${isSelected ? 'bg-blue-500/20 text-cyan-300' : 'bg-white/5 text-slate-400'}`}>
-                        <Icon className="h-5 w-5" />
+                      <div className={`h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-cyan-300/35 ${isSelected ? 'bg-blue-500/20' : 'bg-white/5'}`}>
+                        <img src={goal.icon} alt="" aria-hidden="true" className="h-full w-full object-cover object-center" />
                       </div>
                       <span className="text-xs font-semibold leading-snug sm:text-sm">{goal.label[language]}</span>
                     </button>

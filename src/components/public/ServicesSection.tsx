@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { servicesData } from '../../data/servicesData';
 import { ServiceItem } from '../../types';
+import aiGrowthAutomationImage from '../../assets/services-detailed/ai-growth-automation.webp';
+import websiteDevelopmentImage from '../../assets/services-detailed/website-development.webp';
+import ecommerceGrowthImage from '../../assets/services-detailed/ecommerce-growth.webp';
+import socialGrowthImage from '../../assets/services-detailed/social-growth.webp';
+import photoVideoContentImage from '../../assets/services-detailed/photo-video-content.webp';
+import brandingDesignImage from '../../assets/services-detailed/branding-design.webp';
+import digitalMarketingImage from '../../assets/services-detailed/digital-marketing.webp';
+import customDigitalSolutionsImage from '../../assets/services-detailed/custom-digital-solutions.webp';
 import {
   Code2,
   ShoppingCart,
@@ -37,6 +45,16 @@ const iconMap: Record<string, React.ElementType> = {
   Palette,
   Megaphone,
   Layers,
+};
+
+const serviceCardImages: Record<string, string> = {
+  'web-dev': websiteDevelopmentImage,
+  ecommerce: ecommerceGrowthImage,
+  smm: socialGrowthImage,
+  'media-content': photoVideoContentImage,
+  branding: brandingDesignImage,
+  'digital-marketing': digitalMarketingImage,
+  'custom-solutions': customDigitalSolutionsImage,
 };
 
 // Technology badges and tangible KPIs per service
@@ -321,8 +339,8 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
             {/* Top Right Flagship Badge */}
             <div className="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-blue-500/20">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-cyan-300">
-                  <Bot className="w-5 h-5" />
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-cyan-300/35 bg-blue-500/20">
+                  <img src={aiGrowthAutomationImage} alt="" aria-hidden="true" className="h-full w-full object-cover object-center" />
                 </div>
                 <div>
                   <span className="text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-bold block">
@@ -444,6 +462,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
             .filter((s) => s.id !== 'ai-automation' || activeCategory !== 'all')
             .map((service, index) => {
               const Icon = iconMap[service.icon] || Code2;
+              const serviceImage = serviceCardImages[service.id];
               const meta = serviceMetadata[service.id] || {
                 tech: ['Modern Architecture'],
                 kpi: { uz: 'Yuqori Sifat', ru: 'Высокое Качество', en: 'High Quality' },
@@ -468,8 +487,14 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onNavigate }) 
                     
                     {/* Top Row: Icon & Editorial Index */}
                     <div className="flex items-center justify-between">
-                      <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-105 group-hover:bg-blue-500/20 transition-all">
-                        <Icon className="w-6 h-6" />
+                      <div className="w-16 h-16 shrink-0 overflow-hidden rounded-xl border border-cyan-300/35 bg-blue-500/10 group-hover:scale-105 group-hover:bg-blue-500/20 transition-all">
+                        {serviceImage ? (
+                          <img src={serviceImage} alt="" aria-hidden="true" className="h-full w-full object-cover object-center" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-cyan-400">
+                            <Icon className="w-6 h-6" />
+                          </div>
+                        )}
                       </div>
 
                       <div className="text-right">

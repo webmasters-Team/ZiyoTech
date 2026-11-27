@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { usePlatform } from '../../context/PlatformContext';
 import { servicesData } from '../../data/servicesData';
-import { Send, CheckCircle2, AlertCircle, Sparkles, MessageCircle, Mail } from 'lucide-react';
+import submitSuccessImage from '../../assets/submit-success.webp';
+import { Send, AlertCircle, Sparkles, MessageCircle, Mail } from 'lucide-react';
 
 export const ContactSection: React.FC = () => {
   const { language, t } = useLanguage();
@@ -78,9 +79,7 @@ export const ContactSection: React.FC = () => {
 
           {isSuccess ? (
             <div className="text-center py-12 px-6 space-y-5 rounded-2xl bg-[#070E1C] border border-blue-500/40 animate-in fade-in zoom-in-95 duration-200">
-              <div className="w-16 h-16 rounded-full bg-blue-500/20 text-cyan-400 flex items-center justify-center mx-auto border border-blue-500/40">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
+              <img src={submitSuccessImage} alt="" aria-hidden="true" className="mx-auto block h-28 w-28 rounded-full object-cover" />
               <h3 className="text-2xl font-bold text-white">
                 {t.contact.successTitle}
               </h3>
